@@ -4,6 +4,7 @@ const fs = require('fs');
 const { chromium } = require('playwright');
 const xlsx = require('xlsx');
 const auth = require('./auth');
+const { sendTelegramMessage } = require('./telegram');
 
 /**
  * =========================================================================
@@ -658,10 +659,13 @@ async function main() {
         console.log(`Gagal/Dilewati   : ${skipTotal}`);
         console.log('===========================================================');
 
-        console.log('\n================== LAPORAN WHATSAPP ==================');
+        console.log('\n================== LAPORAN EKSEKUSI ==================');
         console.log(waReport);
         console.log('======================================================\n');
         console.log(`💾 Laporan tersimpan di: ${waReportFile}`);
+
+        // Kirim notifikasi Telegram jika dikonfigurasi
+        await sendTelegramMessage(waReport);
 
     } catch (err) {
         console.error(`❌ [FATAL ERROR]: ${err.message}`);

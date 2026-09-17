@@ -14,6 +14,7 @@ Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, ma
 | `node scripts/input-zoom.js --all` | Menjalankan seluruh **37 mata kuliah** (Semua hari: Senin s/d Jumat). | Batch input awal semester untuk semua kelas |
 | `node scripts/input-zoom.js --force` | Memaksa membuat pertemuan berikutnya meskipun sesi hari ini sudah ada di LMS. | Jika ingin menyiapkan pertemuan minggu depan |
 | `node scripts/input-zoom.js --limit <N>` | Membatasi proses hanya sebanyak `N` mata kuliah (contoh: `--limit 3`). | Pengujian bertahap |
+| `npm run telegram:check` | Memeriksa token bot Telegram, mendeteksi Chat ID akun Anda, dan mengirim pesan tes. | Setup & uji coba notifikasi Telegram |
 | `npm run n8n` | Menjalankan dashboard n8n lokal dengan dukungan node `Execute Command`. | Menjalankan server jadwal n8n |
 
 ---
@@ -149,7 +150,43 @@ DATA_FILE=data/jadwal_zoom.xlsx
 
 # Konfigurasi Node n8n
 NODES_EXCLUDE=[]
+
+# Notifikasi Telegram Bot (Laporan Harian Otomatis)
+TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
+TELEGRAM_CHAT_ID=987654321
 ```
+
+---
+
+## 🤖 Panduan Setup Notifikasi Telegram Bot
+
+Laporan hasil eksekusi harian akan dikirim otomatis ke aplikasi Telegram Anda setiap kali automasi selesai berjalan.
+
+### Langkah 1: Buat Bot di Telegram
+1. Buka Telegram dan cari **`@BotFather`**.
+2. Kirim pesan: `/newbot`
+3. Beri nama bot Anda (contoh: `LMS Civitas Notifier`).
+4. Beri username bot yang berakhiran `bot` (contoh: `farhan_lms_notif_bot`).
+5. BotFather akan memberikan **Token HTTP API** (contoh: `7654321980:AAH...`).
+6. Masukkan token tersebut ke file [`.env`](.env):
+   ```env
+   TELEGRAM_BOT_TOKEN=7654321980:AAH...
+   ```
+
+### Langkah 2: Dapatkan Chat ID Akun Anda
+1. Buka Telegram dan cari bot yang baru Anda buat (misal `@farhan_lms_notif_bot`).
+2. Klik tombol **`START`** atau kirim pesan apa saja (misal: "halo").
+3. Jalankan perintah pendeteksi otomatis di terminal:
+   ```bash
+   npm run telegram:check
+   ```
+4. Terminal akan otomatis mendeteksi nama dan **Chat ID** Anda, lalu mengirimkan pesan tes.
+5. Salin Chat ID ke file [`.env`](.env):
+   ```env
+   TELEGRAM_CHAT_ID=123456789
+   ```
+
+Setelah kedua konfigurasi diisi, setiap kali `node scripts/input-zoom.js` atau cron n8n berjalan, laporan lengkap akan otomatis terkirim ke Telegram Anda!
 
 ---
 

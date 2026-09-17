@@ -8,6 +8,8 @@
     "test-zoom": "node scripts/input-zoom.js --test",
     "record": "node scripts/record.js",
     "gen-data": "node scripts/create-sample-data.js",
+    "sync-excel": "node scripts/sync-excel.js",
+    "telegram:check": "node scripts/get-chat-id.js",
     "n8n": "start-n8n.bat"
   },
   "keywords": [],
