@@ -394,6 +394,27 @@ function formatWhatsAppReport({ targetDay, courses }) {
         });
     }
 
+    // Sorotan Khusus Matkul Gabungan Hari Rabu (Semester 1 & 7) jika ada
+    const gabunganRabu = courses.filter(c => ['PU 1209', 'PU 1210', 'ST 7105', 'ST 7106'].includes(c.kode));
+    if (gabunganRabu.length > 0) {
+        report += `🔗 *Pengecekan Matkul Gabungan (Sem 1 & Sem 7 - Hari Rabu):*\n`;
+        const iot1 = courses.find(c => c.kode === 'PU 1209');
+        const iot7 = courses.find(c => c.kode === 'ST 7105');
+        if (iot1 || iot7) {
+            const sameIot = (iot1 && iot7) ? (iot1.zoomUrl === iot7.zoomUrl ? '✅ Link Sama' : '❌ Link Beda!') : '🔹 Terjadwal';
+            const slotName = (iot1 || iot7).slot;
+            report += `• *Logika / Tekno Digital* ➔ Slot *${slotName}* (${sameIot})\n`;
+        }
+        const etika1 = courses.find(c => c.kode === 'PU 1210');
+        const etika7 = courses.find(c => c.kode === 'ST 7106');
+        if (etika1 || etika7) {
+            const sameEtika = (etika1 && etika7) ? (etika1.zoomUrl === etika7.zoomUrl ? '✅ Link Sama' : '❌ Link Beda!') : '🔹 Terjadwal';
+            const slotName = (etika1 || etika7).slot;
+            report += `• *Etika Profesi* ➔ Slot *${slotName}* (${sameEtika})\n`;
+        }
+        report += `\n`;
+    }
+
     // Sorotan Khusus Matkul Pilihan Hari Kamis jika ada
     const pilihanSem7 = courses.filter(c => ['TS 7472', 'TS 7473', 'TS 7474'].includes(c.kode));
     if (pilihanSem7.length > 0) {
@@ -468,6 +489,29 @@ async function main() {
     if (totalTargetCourses === 0) {
         console.log(`ℹ️ Tidak ada mata kuliah dengan jadwal hari '${targetDay}'. Skrip selesai.`);
         return;
+    }
+
+    // 4. Validasi Integritas Link Zoom Matkul Gabungan (Semester 1 & 7 pada Hari Rabu)
+    const sem1List = coursesPerSemester['1'] || [];
+    const sem7List = coursesPerSemester['7'] || [];
+    const iotSem1 = sem1List.find(c => c.kode === 'PU 1209');
+    const iotSem7 = sem7List.find(c => c.kode === 'ST 7105');
+    const etikaSem1 = sem1List.find(c => c.kode === 'PU 1210');
+    const etikaSem7 = sem7List.find(c => c.kode === 'ST 7106');
+
+    if (iotSem1 && iotSem7) {
+        const link1 = zoomSlots.get(String(iotSem1.kode_slot).toLowerCase().trim())?.link_zoom;
+        const link7 = zoomSlots.get(String(iotSem7.kode_slot).toLowerCase().trim())?.link_zoom;
+        if (link1 && link7 && link1 !== link7) {
+            console.warn(`⚠️ [PERINGATAN GABUNGAN] Link Zoom 'Logika Teknologi' (Sem 1) tidak sama dengan 'Teknologi Digital' (Sem 7)!`);
+        }
+    }
+    if (etikaSem1 && etikaSem7) {
+        const link1 = zoomSlots.get(String(etikaSem1.kode_slot).toLowerCase().trim())?.link_zoom;
+        const link7 = zoomSlots.get(String(etikaSem7.kode_slot).toLowerCase().trim())?.link_zoom;
+        if (link1 && link7 && link1 !== link7) {
+            console.warn(`⚠️ [PERINGATAN GABUNGAN] Link Zoom 'Etika Profesi' (Sem 1) tidak sama dengan (Sem 7)!`);
+        }
     }
 
     console.log('===========================================================');

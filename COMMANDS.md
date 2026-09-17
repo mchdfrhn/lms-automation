@@ -166,11 +166,12 @@ NODES_EXCLUDE=[]
 * **Semester 5**: Rekayasa Struktur Bangunan Baja (`TS 5348`), Rekayasa Sungai dan Pantai (`TS 5355`)
 * **Semester 7**: Sistem Penjamin Mutu Teknik Sipil (`ST 7109`), Perencanaan Jembatan (`TS 7365`)
 
-### 🔹 Rabu (9 Mata Kuliah)
-* **Semester 1**: Logika Teknologi dan Transformasi Digital (`PU 1209`), Etika Profesi dan Pendidikan Anti Korupsi (`PU 1210`) $\rightarrow$ Slot `1`
+### 🔹 Rabu (9 Mata Kuliah - Termasuk 2 Pasang Kelas Gabungan Sem 1 & Sem 7)
+* **Semester 1 & 7 (Kelas Gabungan $\rightarrow$ Wajib Link Zoom Sama di Slot `7a`):**
+  * *Pkl 19:00 WIB*: Logika Teknologi dan Transformasi Digital (`PU 1209`) & Teknologi dan Transformasi Digital (`ST 7105`) $\rightarrow$ Pengajar: MUHAMMAD FAIZ SYAIFUL ISLAM, M.Si.
+  * *Pkl 20:30 WIB*: Etika Profesi dan Pendidikan Anti Korupsi (`PU 1210`) & Etika Profesi (`ST 7106`) $\rightarrow$ Pengajar: Drs. GUNAWAN WIBISONO, M.T.
 * **Semester 3**: Kimia Dasar (`TS 3327`), Transportasi & Rekayasa Lalu Lintas (`TS 3332`)
 * **Semester 5**: Pemodelan Struktur (`TS 5345`), Praktik Pemodelan Struktur (`TS 5346`), Rekayasa Perkerasan & Preservasi Jalan (`TS 5350`)
-* **Semester 7**: Teknologi dan Transformasi Digital (`ST 7105`), Etika Profesi (`ST 7106`)
 
 ### 🔹 Kamis (8 Mata Kuliah - Termasuk 3 Matkul Pilihan)
 * **Semester 3**: Mekanika Tanah I (`TS 3329`), Hidrologi Terapan (`TS 3331`)
