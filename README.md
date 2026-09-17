@@ -10,10 +10,11 @@
 
 ## 🌟 Fitur Utama Sistem
 
-* 📅 **Eksekusi Harian Cerdas (*Smart Daily Filter*)**:
-  Mendeteksi hari sistem secara otomatis (Senin s/d Jumat) dan hanya mengeksekusi mata kuliah yang terjadwal pada hari tersebut. Akhir pekan (Sabtu/Minggu) otomatis libur tanpa membuka browser.
-* 🛡️ **Proteksi Sesi Ganda (*Idempotent & Anti-Lompat Minggu*)**:
-  Sistem mengecek apakah vidcon pertemuan hari ini sudah pernah dibuat sebelumnya. Jika sudah ada, sistem melewatinya (*skip*) dengan status aman dan tidak akan membuat pertemuan minggu depan lebih awal secara tidak sengaja.
+* 📅 **Eksekusi Harian Ketat Tanggal (*Strict Daily Date Execution*)**:
+  Bot dieksekusi secara harian, mendeteksi tanggal kalender saat ini (`targetDate`), dan **hanya memproses jadwal yang persis ada pada tanggal tersebut**. Penamaan link vidcon terstandarisasi rapi: `Kuliah 1` untuk Pertemuan 1, `Kuliah 2` untuk Pertemuan 2, dst. Akhir pekan (Sabtu/Minggu) otomatis libur tanpa membuka browser.
+* 🛡️ **Proteksi Idempoten & Anti-Lompat Minggu (*Strict Idempotency*)**:
+  - Jika sesi pertemuan pada tanggal hari ini sudah pernah dibuat sebelumnya di tab Vidcon LMS, bot mendeteksi status `already_exists` dan **langsung melewatinya (skip)**.
+  - Jika pada tanggal hari ini tidak ada sesi di LMS (misal libur/UTS), bot melewatinya (`no_session_today`) dan **TIDAK AKAN PERNAH** melompat membuat sesi minggu atau bulan berikutnya secara prematur (kecuali opsi `--force` disertakan secara sengaja).
 * 🎓 **Cakupan 37 Mata Kuliah Lengkap**:
   Mencakup seluruh perkuliahan Kelas Sore S1 Teknik Sipil: Semester 1 (3 matkul), Semester 3 (10 matkul), Semester 5 (12 matkul), dan Semester 7 (12 matkul).
 * 🔗 **Penyelarasan Kelas Gabungan (Semester 1 & 7)**:
@@ -49,6 +50,8 @@ c:\lms-automation\
 │   └── last_report.json      # Metadata laporan terakhir dalam format JSON
 ├── scripts/
 │   ├── input-zoom.js         # Engine utama automasi penginputan link Zoom
+│   ├── n8n-daemon.js         # Watchdog daemon penjaga kestabilan n8n lokal
+│   ├── manage-service.js     # CLI manajemen service background & autostart
 │   ├── auth.js               # Handler login & auto-relogin sesi 5 menit
 │   ├── telegram.js           # Modul pengirim notifikasi ke Telegram Bot
 │   ├── get-chat-id.js        # Utilitas pendeteksi Chat ID Telegram otomatis
