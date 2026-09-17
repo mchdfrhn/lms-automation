@@ -10,7 +10,13 @@
     "gen-data": "node scripts/create-sample-data.js",
     "sync-excel": "node scripts/sync-excel.js",
     "telegram:check": "node scripts/get-chat-id.js",
-    "n8n": "start-n8n.bat"
+    "n8n": "start-n8n.bat",
+    "service:start": "node scripts/manage-service.js start",
+    "service:stop": "node scripts/manage-service.js stop",
+    "service:status": "node scripts/manage-service.js status",
+    "service:logs": "node scripts/manage-service.js logs",
+    "service:autostart": "node scripts/manage-service.js autostart-enable",
+    "service:autostart-off": "node scripts/manage-service.js autostart-disable"
   },
   "keywords": [],
   "author": "",

@@ -15,7 +15,11 @@ Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, ma
 | `node scripts/input-zoom.js --force` | Memaksa membuat pertemuan berikutnya meskipun sesi hari ini sudah ada di LMS. | Jika ingin menyiapkan pertemuan minggu depan |
 | `node scripts/input-zoom.js --limit <N>` | Membatasi proses hanya sebanyak `N` mata kuliah (contoh: `--limit 3`). | Pengujian bertahap |
 | `npm run telegram:check` | Memeriksa token bot Telegram, mendeteksi Chat ID akun Anda, dan mengirim pesan tes. | Setup & uji coba notifikasi Telegram |
-| `npm run n8n` | Menjalankan dashboard n8n lokal dengan dukungan node `Execute Command`. | Menjalankan server jadwal n8n |
+| `npm run service:status` | Mengecek status Watchdog Daemon, server n8n, dan status autostart Windows. | Monitoring produksi lokal |
+| `npm run service:start` | Menjalankan n8n di latar belakang tanpa jendela CMD (*silent background*). | Memulai layanan mandiri |
+| `npm run service:stop` | Menghentikan Watchdog Daemon dan mematikan n8n secara bersih. | Maintenance / mematikan server |
+| `npm run service:autostart` | Mengaktifkan autostart agar n8n otomatis menyala saat PC restart/boot. | Setup awal produksi |
+| `npm run n8n` | Menjalankan n8n di jendela CMD interaktif biasa. | Debugging visual |
 
 ---
 

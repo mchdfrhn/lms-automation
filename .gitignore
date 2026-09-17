@@ -10,3 +10,5 @@ scratch/
 *.png
 *.jpg
 data/last_report*
+data/daemon.pid
+logs/

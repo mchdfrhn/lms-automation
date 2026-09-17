@@ -134,16 +134,44 @@ Total terdaftar: **37 Mata Kuliah**
 
 ---
 
-## ⏰ Menjalankan Otomatis dengan n8n
+---
 
-1. Jalankan server n8n lokal:
-   ```bash
-   npm run n8n
-   ```
-2. Buka browser di `http://localhost:5678`.
-3. Pilih **Import from File**, lalu pilih file [`n8n-workflows/lms-daily-workflow.json`](n8n-workflows/lms-daily-workflow.json).
-4. Atur jadwal cron (misal: Setiap hari Senin - Jumat pukul 07:00 WIB).
-5. Aktifkan workflow (*Active: ON*). n8n akan menjalankan script setiap pagi dan bot Telegram akan otomatis mengirimkan laporan eksekusi ke ponsel Anda.
+## 🖥️ Mode Produksi Lokal (24/7 & Autostart Windows)
+
+Sistem ini didesain untuk berjalan secara mandiri di komputer lokal tanpa server eksternal, dilengkapi **Watchdog Daemon** agar stabil tidak pernah mati, dan **Windows Autostart** saat PC menyala/restart:
+
+### 1. Manajemen Layanan Latar Belakang (Tanpa Jendela CMD)
+
+| Perintah | Deskripsi |
+| :--- | :--- |
+| `npm run service:status` | Memeriksa apakah Watchdog Daemon dan server n8n sedang berjalan (*Online/Offline*). |
+| `npm run service:start` | Memulai Watchdog Daemon & n8n secara hening di latar belakang (*silent background*). |
+| `npm run service:stop` | Menghentikan Watchdog Daemon dan mematikan n8n secara bersih. |
+| `npm run service:logs` | Melihat catatan log aktivitas terbaru n8n dan watchdog (`logs/n8n.log`). |
+
+### 2. Autostart Saat PC Menyala / Restart
+Layanan telah dikonfigurasi untuk menyala otomatis setiap kali komputer di-boot atau di-restart:
+* **Aktifkan Autostart**:
+  ```bash
+  npm run service:autostart
+  ```
+  *(Menambahkan shortcut launcher `Start-LMS-Civitas.vbs` ke Windows Startup Folder).*
+* **Matikan Autostart** (Jika diperlukan):
+  ```bash
+  npm run service:autostart-off
+  ```
+
+### 3. Ketahanan Terhadap Crash (*Crash-Proof & Self-Healing*)
+Jika proses server n8n mengalami error tak terduga atau tertutup, **Watchdog Daemon** akan otomatis mendeteksi matinya proses dan meluncurkan ulang server n8n dalam **3 detik**.
+
+---
+
+## ⏰ Konfigurasi Jadwal Alur Kerja di n8n
+
+1. Buka browser di `http://localhost:5678`.
+2. Pilih **Import from File**, lalu pilih file [`n8n-workflows/lms-daily-workflow.json`](n8n-workflows/lms-daily-workflow.json).
+3. Atur jadwal cron (misal: Setiap hari Senin - Jumat pukul 07:00 WIB).
+4. Aktifkan workflow (*Active: ON*). n8n akan mengeksekusi automasi setiap pagi dan bot Telegram otomatis mengirimkan laporan eksekusi ke ponsel Anda.
 
 ---
 
