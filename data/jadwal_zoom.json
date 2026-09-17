@@ -1,0 +1,32 @@
+[
+  {
+    "kode_slot": "1",
+    "keterangan": "Semester 1",
+    "link_zoom": "https://us06web.zoom.us/j/6838619148?pwd=3K43WwrhPpsAg5G3sYIS7axZ8JGdoy.1&omn=86914195551"
+  },
+  {
+    "kode_slot": "3",
+    "keterangan": "Semester 3 (Semua Matkul)",
+    "link_zoom": "https://us06web.zoom.us/j/4540591032?pwd=5AlfFjdcUdHjhGUYykTdclTVID0egW.1&omn=89285501233"
+  },
+  {
+    "kode_slot": "5",
+    "keterangan": "Semester 5 (Semua Matkul)",
+    "link_zoom": "https://us06web.zoom.us/j/3601377660?pwd=uzOl8cBKaHF20akUBnOr9I840AtDIj.1&omn=89219612400"
+  },
+  {
+    "kode_slot": "7a",
+    "keterangan": "Semester 7 - Reguler & Pilihan Gedung",
+    "link_zoom": "https://us06web.zoom.us/j/6971772966?pwd=qSLwC095nBjsQ0k9S7mfQm1aDb0oqW.1&omn=86533505681"
+  },
+  {
+    "kode_slot": "7b",
+    "keterangan": "Semester 7 - Pilihan SDA",
+    "link_zoom": "https://us06web.zoom.us/j/4051597874?pwd=FVfuj8BY6x0isDb9hsJ7AFmmhnQx2o.1&omn=84486529251"
+  },
+  {
+    "kode_slot": "7c",
+    "keterangan": "Semester 7 - Pilihan Jalan dan Jembatan",
+    "link_zoom": "https://us06web.zoom.us/j/2255787965?pwd=xtFmpUfK1vbgO1dc6QPo8a0r95KN1e.1&omn=84180196535"
+  }
+]

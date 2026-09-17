@@ -1,0 +1,22 @@
+{
+  "name": "lms-automation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "zoom": "node scripts/input-zoom.js",
+    "test-zoom": "node scripts/input-zoom.js --test",
+    "record": "node scripts/record.js",
+    "gen-data": "node scripts/create-sample-data.js",
+    "n8n": "start-n8n.bat"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "playwright": "^1.63.0",
+    "xlsx": "^0.18.5"
+  }
+}

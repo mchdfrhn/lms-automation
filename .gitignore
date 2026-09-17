@@ -1,0 +1,11 @@
+node_modules/
+.env
+session/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+*.log
+scratch/
+*.png
+*.jpg
