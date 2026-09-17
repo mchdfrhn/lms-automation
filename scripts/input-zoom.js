@@ -25,6 +25,12 @@ const JSON_ZOOM_FILE = path.join(DATA_DIR, 'jadwal_zoom.json');
 const EXCEL_ZOOM_FILE = path.join(DATA_DIR, 'jadwal_zoom.xlsx');
 const MATKUL_FILE = path.join(DATA_DIR, 'daftar_matkul.json');
 
+const HARI_MAP = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const MONTH_NAMES = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
 // Membaca link zoom per slot (1, 3, 5, 7a, 7b, 7c) dengan auto-sync
 function getZoomSlots() {
     const hasJson = fs.existsSync(JSON_ZOOM_FILE);
@@ -204,35 +210,60 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
         return { success: false, status: 'empty_dropdown', reason: 'Jadwal pertemuan tidak ada di LMS (Praktikum / Non-teori)' };
     }
 
-    // 9. Cek apakah pertemuan untuk jadwal hari ini sudah terdaftar
-    const now = new Date();
-    const todayDay = now.getDate();
-    const todayMonth = now.getMonth();
-    const todayYear = now.getFullYear();
+    // 9. Cek apakah pertemuan untuk jadwal target tanggal hari ini sudah terdaftar
+    const targetDate = options.targetDate || new Date();
+    const targetDayNum = targetDate.getDate();
+    const targetMonthIndex = targetDate.getMonth();
+    const targetYearNum = targetDate.getFullYear();
+    const targetDateFormatted = `${targetDayNum} ${MONTH_NAMES[targetMonthIndex]} ${targetYearNum}`;
 
-    // Cari pertemuan di dropdown yang tanggalnya persis hari ini
-    const todayMeeting = availableMeetings.find(m => m.day === todayDay && m.monthIndex === todayMonth && m.year === todayYear);
+    // Cari seluruh pertemuan di dropdown yang tanggalnya PERSIS sesuai target date
+    const matchingMeetings = availableMeetings.filter(m =>
+        m.day === targetDayNum &&
+        m.monthIndex === targetMonthIndex &&
+        m.year === targetYearNum
+    );
 
     let nextMeeting = null;
 
-    if (todayMeeting && !isForce) {
-        // Jika ada sesi yang terjadwal persis hari ini:
-        if (existingMeetingNums.has(todayMeeting.meetingNumber)) {
-            console.log(`ℹ️ [SUDAH TERSEDIA] Vidcon hari ini (Kuliah ${todayMeeting.meetingNumber} - ${todayMeeting.day} ${todayMeeting.monthName} ${todayMeeting.year}) sudah terdaftar di LMS.`);
+    if (matchingMeetings.length > 0 && !isForce) {
+        // Ada sesi yang terjadwal persis di tanggal target
+        // Cek apakah ada yang BELUM dibuat
+        const uncreatedSession = matchingMeetings.find(m => !existingMeetingNums.has(m.meetingNumber));
+
+        if (!uncreatedSession) {
+            // Semua sesi pada tanggal target ini SUDAH ADA di LMS -> SKIP JOB
+            const titles = matchingMeetings.map(m => `Kuliah ${m.meetingNumber}`).join(', ');
+            console.log(`ℹ️ [SUDAH TERSEDIA] Vidcon tanggal ${targetDateFormatted} (${titles}) sudah terdaftar di LMS. Melewati.`);
             const cancelBtn = modal.locator('button:has-text("Batal"), .delete').first();
             if (await cancelBtn.isVisible().catch(() => false)) await cancelBtn.click();
             return {
                 success: true,
                 status: 'already_exists',
-                meetingTitle: `Kuliah ${todayMeeting.meetingNumber}`,
-                meetingDate: `${todayMeeting.day} ${todayMeeting.monthName} ${todayMeeting.year}`,
-                reason: 'Pertemuan hari ini sudah dibuat'
+                meetingTitle: titles,
+                meetingDate: targetDateFormatted,
+                reason: 'Pertemuan untuk tanggal ini sudah terdaftar'
             };
         }
-        nextMeeting = todayMeeting;
+
+        // Ditemukan sesi untuk tanggal target yang belum dibuat
+        nextMeeting = uncreatedSession;
+    } else if (!isForce) {
+        // TIDAK ADA sesi perkuliahan di dropdown LMS untuk tanggal target ini
+        // SANGAT PENTING: JANGAN PERNAH melompat ke sesi minggu/bulan depan!
+        console.log(`ℹ️ [LEWATI] Tidak ada jadwal sesi perkuliahan pada tanggal ${targetDateFormatted} untuk ${course.nama}.`);
+        const cancelBtn = modal.locator('button:has-text("Batal"), .delete').first();
+        if (await cancelBtn.isVisible().catch(() => false)) await cancelBtn.click();
+        return {
+            success: true,
+            status: 'no_session_today',
+            meetingTitle: '-',
+            meetingDate: targetDateFormatted,
+            reason: `Tidak ada sesi perkuliahan pada tanggal ${targetDateFormatted}`
+        };
     } else {
-        // Jika tidak ada sesi persis hari ini (misal tanggal perkuliahan baru mulai minggu depan atau mode force),
-        // pilih sesi terawal yang belum pernah dibuat
+        // Mode Paksa (--force aktif): Cari sesi terawal manapun yang belum pernah dibuat
+        console.log(`⚠️ [--force] Mode paksa aktif: Mencari sesi terawal yang belum dibuat...`);
         nextMeeting = availableMeetings.find(m => !existingMeetingNums.has(m.meetingNumber));
     }
 
@@ -244,6 +275,7 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
             success: true,
             status: 'complete',
             meetingTitle: `Lengkap (${availableMeetings.length} sesi)`,
+            meetingDate: targetDateFormatted,
             reason: 'Semua pertemuan sudah lengkap'
         };
     }
@@ -344,15 +376,17 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
 /**
  * Format Laporan Eksekusi untuk WhatsApp (Humanize, Rapi & Elegan)
  */
-function formatWhatsAppReport({ targetDay, courses }) {
+function formatWhatsAppReport({ targetDay, targetDate, courses }) {
+    const dateObj = targetDate || new Date();
+    const tglStr = dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     const now = new Date();
-    const tglStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     const jamStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
 
     const createdList = courses.filter(c => c.status === 'created');
     const alreadyList = courses.filter(c => c.status === 'already_exists');
+    const noSessionList = courses.filter(c => c.status === 'no_session_today');
     const emptyList = courses.filter(c => c.status === 'empty_dropdown');
-    const failedList = courses.filter(c => !['created', 'already_exists', 'complete', 'empty_dropdown'].includes(c.status));
+    const failedList = courses.filter(c => !['created', 'already_exists', 'no_session_today', 'complete', 'empty_dropdown'].includes(c.status));
 
     let headerStatus = '✅ *STATUS: SEMUA JADWAL AMAN & SESUAI*';
     if (failedList.length > 0) {
@@ -381,6 +415,8 @@ function formatWhatsAppReport({ targetDay, courses }) {
                 badge = '✅ *Baru Terinput*';
             } else if (c.status === 'already_exists') {
                 badge = '🔹 *Sudah Siap (Aman)*';
+            } else if (c.status === 'no_session_today') {
+                badge = '⚪ *Tidak Ada Jadwal Hari Ini*';
             } else if (c.status === 'empty_dropdown') {
                 badge = '⚠️ *Dilewati (Praktikum / Non-Teori)*';
             } else if (c.status === 'complete') {
@@ -423,7 +459,10 @@ function formatWhatsAppReport({ targetDay, courses }) {
     if (pilihanSem7.length > 0) {
         report += `⭐ *Pengecekan Matkul Pilihan (Kamis 19:00 WIB):*\n`;
         pilihanSem7.forEach(p => {
-            const st = p.status === 'already_exists' ? 'Sudah Ada' : (p.status === 'created' ? 'Baru Terinput' : p.status);
+            let st = p.status;
+            if (p.status === 'already_exists') st = 'Sudah Ada';
+            else if (p.status === 'created') st = 'Baru Terinput';
+            else if (p.status === 'no_session_today') st = 'Tidak Ada Sesi';
             report += `• *${p.nama}* ➔ Slot *${p.slot}* (${st})\n`;
         });
         report += `\n`;
@@ -434,6 +473,7 @@ function formatWhatsAppReport({ targetDay, courses }) {
     report += `• Total Terjadwal : ${courses.length} mata kuliah\n`;
     report += `• Baru Terinput   : ${createdList.length}\n`;
     report += `• Sudah Terdaftar : ${alreadyList.length}\n`;
+    if (noSessionList.length > 0) report += `• Tidak Ada Sesi  : ${noSessionList.length}\n`;
     if (emptyList.length > 0) report += `• Dilewati (Lab)  : ${emptyList.length}\n`;
     if (failedList.length > 0) report += `• Gagal/Perhatian : ${failedList.length}\n`;
     report += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
@@ -452,12 +492,39 @@ async function main() {
     const isHeadless = process.env.HEADLESS === 'true';
 
     // 1. Deteksi Hari Ini & Opsi CLI
-    const HARI_MAP = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const todayName = HARI_MAP[new Date().getDay()];
+    const now = new Date();
+    const todayName = HARI_MAP[now.getDay()];
 
     const isAllDays = process.argv.includes('--all') || process.argv.includes('-a');
     const dayArgIdx = process.argv.findIndex(a => a === '--day' || a === '-d');
-    const targetDay = dayArgIdx !== -1 ? process.argv[dayArgIdx + 1] : (isAllDays ? 'Semua' : todayName);
+    const dateArgIdx = process.argv.findIndex(a => a === '--date');
+
+    const explicitDateStr = dateArgIdx !== -1 ? process.argv[dateArgIdx + 1] : null;
+
+    let targetDateObj = new Date();
+    let targetDay = todayName;
+
+    if (explicitDateStr) {
+        const parts = explicitDateStr.split('-');
+        if (parts.length === 3) {
+            targetDateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        } else {
+            targetDateObj = new Date(explicitDateStr);
+        }
+        targetDay = HARI_MAP[targetDateObj.getDay()];
+    } else if (dayArgIdx !== -1) {
+        targetDay = process.argv[dayArgIdx + 1];
+        if (targetDay.toLowerCase() !== todayName.toLowerCase() && targetDay !== 'Semua') {
+            const targetDayIdx = HARI_MAP.findIndex(h => h.toLowerCase() === targetDay.toLowerCase());
+            if (targetDayIdx !== -1) {
+                const diff = targetDayIdx - now.getDay();
+                targetDateObj = new Date(now);
+                targetDateObj.setDate(now.getDate() + diff);
+            }
+        }
+    } else if (isAllDays) {
+        targetDay = 'Semua';
+    }
 
     const isForce = process.argv.includes('--force') || process.argv.includes('-f');
     const isTestMode = process.argv.includes('--test') || process.argv.includes('-t');
@@ -465,7 +532,7 @@ async function main() {
     const limitCount = limitIdx !== -1 ? parseInt(process.argv[limitIdx + 1], 10) : (isTestMode ? 1 : Infinity);
 
     // 2. Proteksi Akhir Pekan (Sabtu / Minggu)
-    if (!isAllDays && dayArgIdx === -1 && (targetDay === 'Sabtu' || targetDay === 'Minggu')) {
+    if (!isAllDays && dayArgIdx === -1 && dateArgIdx === -1 && (targetDay === 'Sabtu' || targetDay === 'Minggu')) {
         console.log('===========================================================');
         console.log('   AUTOMASI INPUT VIDCON / ZOOM CIVITAS LMS OPERATOR       ');
         console.log('===========================================================');
@@ -517,15 +584,20 @@ async function main() {
         }
     }
 
+    const targetDateFormatted = targetDateObj.toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'long', year: 'numeric'
+    });
+
     console.log('===========================================================');
     console.log('   AUTOMASI INPUT VIDCON / ZOOM CIVITAS LMS OPERATOR       ');
     console.log('===========================================================');
-    console.log(`Target LMS  : ${lmsUrl}`);
-    console.log(`User        : ${username}`);
-    console.log(`Mode        : ${isHeadless ? 'Headless (Background)' : 'Visual (Jendela Browser Terbuka)'}`);
-    console.log(`Jadwal Hari : ${targetDay} (${totalTargetCourses} mata kuliah)`);
-    console.log(`Target Run  : ${limitCount !== Infinity ? limitCount + ' mata kuliah' : 'Seluruh jadwal hari ini'}`);
-    if (isForce) console.log(`Mode Paksa  : YA (--force aktif)`);
+    console.log(`Target LMS     : ${lmsUrl}`);
+    console.log(`User           : ${username}`);
+    console.log(`Mode           : ${isHeadless ? 'Headless (Background)' : 'Visual (Jendela Browser Terbuka)'}`);
+    console.log(`Target Tanggal : ${targetDay}, ${targetDateFormatted}`);
+    console.log(`Target Matkul  : ${totalTargetCourses} mata kuliah`);
+    console.log(`Target Run     : ${limitCount !== Infinity ? limitCount + ' mata kuliah' : 'Seluruh jadwal target'}`);
+    if (isForce) console.log(`Mode Paksa     : YA (--force aktif)`);
     console.log('===========================================================\n');
 
     const browser = await chromium.launch({
@@ -591,11 +663,24 @@ async function main() {
                     continue;
                 }
 
+                let courseTargetDate = targetDateObj;
+                if (targetDay === 'Semua' && course.hari) {
+                    const courseDayIdx = HARI_MAP.findIndex(h => h.toLowerCase() === course.hari.toLowerCase());
+                    if (courseDayIdx !== -1) {
+                        const diff = courseDayIdx - now.getDay();
+                        courseTargetDate = new Date(now);
+                        courseTargetDate.setDate(now.getDate() + diff);
+                    }
+                }
+
                 // Eksekusi dengan 1x Auto-Retry jika terjadi error sesi logout 5 menit
                 let success = false;
                 for (let attempt = 1; attempt <= 2; attempt++) {
                     try {
-                        const res = await addVidconForCourse(page, course, slotObj.link_zoom, { isForce });
+                        const res = await addVidconForCourse(page, course, slotObj.link_zoom, {
+                            isForce,
+                            targetDate: courseTargetDate
+                        });
                         resultItem.status = res.status || (res.success ? 'created' : 'failed');
                         resultItem.meetingTitle = res.meetingTitle || '-';
                         resultItem.meetingDate = res.meetingDate || '-';
@@ -639,6 +724,7 @@ async function main() {
         // Generate dan Simpan Laporan WhatsApp
         const waReport = formatWhatsAppReport({
             targetDay,
+            targetDate: targetDateObj,
             courses: courseResults
         });
 
@@ -649,16 +735,27 @@ async function main() {
             fs.writeFileSync(jsonReportFile, JSON.stringify({
                 generatedAt: new Date().toISOString(),
                 targetDay,
+                targetDate: targetDateObj.toISOString().slice(0, 10),
                 totalCourses: courseResults.length,
                 courses: courseResults
             }, null, 2), 'utf8');
         } catch (e) {}
 
+        const createdTotal = courseResults.filter(c => c.status === 'created').length;
+        const alreadyTotal = courseResults.filter(c => c.status === 'already_exists').length;
+        const noSessionTotal = courseResults.filter(c => c.status === 'no_session_today').length;
+        const emptyTotal = courseResults.filter(c => c.status === 'empty_dropdown').length;
+        const failedTotal = courseResults.filter(c => !['created', 'already_exists', 'no_session_today', 'complete', 'empty_dropdown'].includes(c.status)).length;
+
         console.log('\n===========================================================');
         console.log('                   REKAPITULASI HASIL                      ');
         console.log('===========================================================');
-        console.log(`Sukses Terproses : ${successTotal}`);
-        console.log(`Gagal/Dilewati   : ${skipTotal}`);
+        console.log(`Total Target     : ${courseResults.length} mata kuliah`);
+        console.log(`Baru Terinput    : ${createdTotal}`);
+        console.log(`Sudah Terdaftar  : ${alreadyTotal} (di-skip, aman)`);
+        if (noSessionTotal > 0) console.log(`Tidak Ada Sesi   : ${noSessionTotal}`);
+        if (emptyTotal > 0) console.log(`Dilewati (Lab)   : ${emptyTotal}`);
+        if (failedTotal > 0) console.log(`Gagal/Perhatian  : ${failedTotal}`);
         console.log('===========================================================');
 
         console.log('\n================== LAPORAN EKSEKUSI ==================');

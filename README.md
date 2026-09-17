@@ -102,9 +102,10 @@ Periksa aplikasi Telegram Anda untuk memastikan laporan eksekusi masuk dengan st
 
 | Perintah | Fungsi | Keterangan |
 | :--- | :--- | :--- |
-| `node scripts/input-zoom.js` | **Mode Harian Otomatis** | Menjalankan jadwal hari ini sesuai kalender (Default n8n) |
+| `node scripts/input-zoom.js` | **Mode Harian Otomatis** | Menjalankan jadwal hari ini & tanggal hari ini (Default n8n) |
 | `node scripts/input-zoom.js --test` | **Test Run (1 Matkul)** | Menguji coba 1 mata kuliah saja untuk verifikasi |
 | `node scripts/input-zoom.js --day <Hari>` | **Jadwal Hari Tertentu** | Contoh: `--day Selasa` atau `--day Jumat` |
+| `node scripts/input-zoom.js --date <YYYY-MM-DD>` | **Target Tanggal Kalender** | Contoh: `--date 2026-09-18` |
 | `node scripts/input-zoom.js --all` | **Semua Mata Kuliah** | Menjalankan seluruh 37 mata kuliah (Senin s/d Jumat) |
 | `node scripts/input-zoom.js --limit <N>` | **Batasi Jumlah Run** | Membatasi proses sebanyak `N` mata kuliah (contoh: `--limit 2`) |
 | `node scripts/input-zoom.js --force` | **Paksa Buat Sesi Baru** | Membuat pertemuan berikutnya meski sesi hari ini sudah ada |

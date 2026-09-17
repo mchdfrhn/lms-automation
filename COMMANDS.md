@@ -8,9 +8,10 @@ Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, ma
 
 | Perintah | Deskripsi | Kapan Digunakan |
 | :--- | :--- | :--- |
-| `node scripts/input-zoom.js` | **Mode Otomatis Harian**: Mendeteksi hari saat ini (Senin–Jumat) dan hanya memproses mata kuliah hari tersebut. | **Default untuk n8n / Cron Harian** |
+| `node scripts/input-zoom.js` | **Mode Otomatis Harian**: Mendeteksi hari & tanggal saat ini (Senin–Jumat) dan hanya memproses jadwal pada tanggal tersebut. | **Default untuk n8n / Cron Harian** |
 | `node scripts/input-zoom.js --test` | Menguji penginputan pada **1 mata kuliah saja** lalu berhenti. | Uji coba cepat verifikasi selector / akun |
 | `node scripts/input-zoom.js --day <Hari>` | Menjalankan khusus mata kuliah pada hari tertentu (misal: `--day Jumat`). | Simulasi atau input susulan hari tertentu |
+| `node scripts/input-zoom.js --date <YYYY-MM-DD>` | Menjalankan dengan target tanggal spesifik (misal: `--date 2026-09-18`). | Pengujian tanggal kalender tertentu |
 | `node scripts/input-zoom.js --all` | Menjalankan seluruh **37 mata kuliah** (Semua hari: Senin s/d Jumat). | Batch input awal semester untuk semua kelas |
 | `node scripts/input-zoom.js --force` | Memaksa membuat pertemuan berikutnya meskipun sesi hari ini sudah ada di LMS. | Jika ingin menyiapkan pertemuan minggu depan |
 | `node scripts/input-zoom.js --limit <N>` | Membatasi proses hanya sebanyak `N` mata kuliah (contoh: `--limit 3`). | Pengujian bertahap |
@@ -26,19 +27,22 @@ Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, ma
 ## 🚀 Panduan Penggunaan & Contoh Perintah
 
 ### 1. Eksekusi Harian Otomatis (Standar n8n)
-Perintah ini membaca hari sistem secara otomatis:
+Perintah ini membaca hari dan tanggal sistem secara otomatis:
 ```bash
 node scripts/input-zoom.js
 ```
 * **Senin**: Memproses 8 mata kuliah hari Senin.
 * **Selasa**: Memproses 8 mata kuliah hari Selasa.
-* **Rabu**: Memproses 9 mata kuliah hari Rabu.
-* **Kamis**: Memproses 8 mata kuliah hari Kamis.
+* **Rabu**: Memproses 9 mata kuliah hari Rabu (termasuk kelas gabungan Sem 1 & 7).
+* **Kamis**: Memproses 8 mata kuliah hari Kamis (termasuk 3 matkul pilihan).
 * **Jumat**: Memproses 4 mata kuliah hari Jumat.
 * **Sabtu / Minggu**: Langsung selesai tanpa membuka browser.
 
-> [!NOTE]
-> **Proteksi Anti-Lompat Minggu:** Jika pertemuan untuk tanggal hari ini sudah pernah dibuat sebelumnya, skrip akan melewatinya (*skip*) dengan status `[SUDAH TERSEDIA]`. Skrip **tidak akan** membuat pertemuan minggu depan lebih awal secara tidak sengaja.
+> [!IMPORTANT]
+> **Proteksi Ketat Tanggal Hari Ini (Anti-Lompat Minggu):**
+> 1. Bot hanya mencari pertemuan di dropdown LMS yang tanggalnya **persis sama** dengan tanggal eksekusi (`targetDate`).
+> 2. Jika pertemuan untuk tanggal hari ini sudah ada di tab Vidcon (misal `Kuliah 1`), bot mendeteksi `already_exists` dan **langsung melewatinya (skip)**.
+> 3. Jika tidak ada sesi perkuliahan pada tanggal hari ini (misal libur/UTS), bot melewatinya (`no_session_today`) dan **TIDAK AKAN** melompat membuat sesi minggu/bulan berikutnya (kecuali menggunakan opsi `--force`).
 
 ---
 
