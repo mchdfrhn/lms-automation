@@ -9,3 +9,4 @@ playwright/.cache/
 scratch/
 *.png
 *.jpg
+data/last_report*

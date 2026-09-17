@@ -146,7 +146,7 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
 
     if (!await targetRow.isVisible({ timeout: 4000 }).catch(() => false)) {
         console.warn(`⚠️ [SKIP] Kelas Sore untuk '${course.nama}' (${course.kode}) tidak ditemukan di tabel.`);
-        return { success: false, reason: 'Baris Kelas Sore tidak ditemukan di tabel' };
+        return { success: false, status: 'not_found', reason: 'Baris Kelas Sore tidak ditemukan di tabel' };
     }
 
     // 4. Klik tombol "Lihat"
@@ -176,7 +176,7 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
     const tambahVidconBtn = page.getByRole('button', { name: /Tambah Vidcon/i }).first();
     if (!await tambahVidconBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         console.warn(`⚠️ Tombol 'Tambah Vidcon' tidak ditemukan.`);
-        return { success: false, reason: 'Tombol Tambah Vidcon tidak terlihat' };
+        return { success: false, status: 'button_hidden', reason: 'Tombol Tambah Vidcon tidak terlihat' };
     }
     await tambahVidconBtn.click();
     await page.waitForTimeout(1500);
@@ -200,7 +200,7 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
         console.warn(`⚠️ Tidak ditemukan jadwal pertemuan aktif di dropdown.`);
         const cancelBtn = modal.locator('button:has-text("Batal"), .delete').first();
         if (await cancelBtn.isVisible().catch(() => false)) await cancelBtn.click();
-        return { success: false, reason: 'Dropdown pertemuan kosong' };
+        return { success: false, status: 'empty_dropdown', reason: 'Jadwal pertemuan tidak ada di LMS (Praktikum / Non-teori)' };
     }
 
     // 9. Cek apakah pertemuan untuk jadwal hari ini sudah terdaftar
@@ -220,7 +220,13 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
             console.log(`ℹ️ [SUDAH TERSEDIA] Vidcon hari ini (Kuliah ${todayMeeting.meetingNumber} - ${todayMeeting.day} ${todayMeeting.monthName} ${todayMeeting.year}) sudah terdaftar di LMS.`);
             const cancelBtn = modal.locator('button:has-text("Batal"), .delete').first();
             if (await cancelBtn.isVisible().catch(() => false)) await cancelBtn.click();
-            return { success: true, reason: 'Pertemuan hari ini sudah dibuat' };
+            return {
+                success: true,
+                status: 'already_exists',
+                meetingTitle: `Kuliah ${todayMeeting.meetingNumber}`,
+                meetingDate: `${todayMeeting.day} ${todayMeeting.monthName} ${todayMeeting.year}`,
+                reason: 'Pertemuan hari ini sudah dibuat'
+            };
         }
         nextMeeting = todayMeeting;
     } else {
@@ -233,7 +239,12 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
         console.log(`✅ [LENGKAP] Seluruh pertemuan (${availableMeetings.length} sesi) untuk ${course.nama} sudah dibuat.`);
         const cancelBtn = modal.locator('button:has-text("Batal"), .delete').first();
         if (await cancelBtn.isVisible().catch(() => false)) await cancelBtn.click();
-        return { success: true, reason: 'Semua pertemuan sudah lengkap' };
+        return {
+            success: true,
+            status: 'complete',
+            meetingTitle: `Lengkap (${availableMeetings.length} sesi)`,
+            reason: 'Semua pertemuan sudah lengkap'
+        };
     }
 
     const judul = `Kuliah ${nextMeeting.meetingNumber}`;
@@ -317,11 +328,94 @@ async function addVidconForCourse(page, course, zoomUrl, options = {}) {
         console.error(`❌ [GAGAL SIMPAN] Server menolak pembuatan vidcon: ${apiErrorMsg}`);
         const cancelBtn = modal.locator('button:has-text("Batal"), .delete').first();
         if (await cancelBtn.isVisible().catch(() => false)) await cancelBtn.click();
-        return { success: false, reason: apiErrorMsg };
+        return { success: false, status: 'api_error', reason: apiErrorMsg };
     }
 
     console.log(`✅ [BERHASIL] ${judul} untuk ${course.nama} berhasil disimpan!`);
-    return { success: true };
+    return {
+        success: true,
+        status: 'created',
+        meetingTitle: judul,
+        meetingDate: `${nextMeeting.day} ${nextMeeting.monthName} ${nextMeeting.year}`
+    };
+}
+
+/**
+ * Format Laporan Eksekusi untuk WhatsApp (Humanize, Rapi & Elegan)
+ */
+function formatWhatsAppReport({ targetDay, courses }) {
+    const now = new Date();
+    const tglStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    const jamStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+    const createdList = courses.filter(c => c.status === 'created');
+    const alreadyList = courses.filter(c => c.status === 'already_exists');
+    const emptyList = courses.filter(c => c.status === 'empty_dropdown');
+    const failedList = courses.filter(c => !['created', 'already_exists', 'complete', 'empty_dropdown'].includes(c.status));
+
+    let headerStatus = '✅ *STATUS: SEMUA JADWAL AMAN & SESUAI*';
+    if (failedList.length > 0) {
+        headerStatus = `⚠️ *STATUS: ${failedList.length} MATA KULIAH MEMERLUKAN PERHATIAN*`;
+    }
+
+    let report = `📋 *LAPORAN AUTOMASI ZOOM CIVITAS LMS*\n`;
+    report += `🗓️ *Jadwal :* ${targetDay}, ${tglStr}\n`;
+    report += `⏰ *Waktu  :* ${jamStr}\n`;
+    report += `🎓 *Target :* S1 Teknik Sipil (Kelas Sore)\n`;
+    report += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    report += `${headerStatus}\n`;
+    report += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    const semNames = { '3': 'Semester 3', '5': 'Semester 5', '7': 'Semester 7' };
+
+    for (const sem of ['3', '5', '7']) {
+        const list = courses.filter(c => c.semester === sem);
+        if (list.length === 0) continue;
+
+        report += `📚 *${semNames[sem]}* (${list.length} Mata Kuliah)\n`;
+
+        list.forEach((c, idx) => {
+            let badge = '✅ *Baru Terinput*';
+            if (c.status === 'already_exists') {
+                badge = '🔹 *Sudah Siap (Aman)*';
+            } else if (c.status === 'empty_dropdown') {
+                badge = '⚠️ *Dilewati (Praktikum / Non-Teori)*';
+            } else if (c.status === 'complete') {
+                badge = '🏁 *Sesi Lengkap*';
+            } else {
+                badge = `❌ *Gagal:* ${c.reason || 'Error'}`;
+            }
+
+            report += `${idx + 1}. *${c.nama}*\n`;
+            report += `   • Kode / Slot : \`${c.kode}\` | *Slot ${c.slot}*\n`;
+            if (c.dosen && c.dosen !== '-') report += `   • Dosen       : ${c.dosen}\n`;
+            report += `   • Sesi        : ${c.meetingTitle} (${c.jam} WIB)\n`;
+            report += `   • Status      : ${badge}\n\n`;
+        });
+    }
+
+    // Sorotan Khusus Matkul Pilihan Hari Kamis jika ada
+    const pilihanSem7 = courses.filter(c => ['TS 7472', 'TS 7473', 'TS 7474'].includes(c.kode));
+    if (pilihanSem7.length > 0) {
+        report += `⭐ *Pengecekan Matkul Pilihan (Kamis 19:00 WIB):*\n`;
+        pilihanSem7.forEach(p => {
+            const st = p.status === 'already_exists' ? 'Sudah Ada' : (p.status === 'created' ? 'Baru Terinput' : p.status);
+            report += `• *${p.nama}* ➔ Slot *${p.slot}* (${st})\n`;
+        });
+        report += `\n`;
+    }
+
+    report += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    report += `📊 *RINGKASAN EKSEKUSI:*\n`;
+    report += `• Total Terjadwal : ${courses.length} mata kuliah\n`;
+    report += `• Baru Terinput   : ${createdList.length}\n`;
+    report += `• Sudah Terdaftar : ${alreadyList.length}\n`;
+    if (emptyList.length > 0) report += `• Dilewati (Lab)  : ${emptyList.length}\n`;
+    if (failedList.length > 0) report += `• Gagal/Perhatian : ${failedList.length}\n`;
+    report += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    report += `_Automasi LMS Civitas Operator • Status Valid_`;
+
+    return report;
 }
 
 /**
@@ -396,6 +490,8 @@ async function main() {
     const page = await context.newPage();
     const credentials = { url: lmsUrl, username, password };
 
+    const courseResults = [];
+
     try {
         console.log('[AUTH] Melakukan login ke Civitas LMS...');
         await auth.login(page, credentials);
@@ -424,9 +520,27 @@ async function main() {
                 const slotKey = String(course.kode_slot || semester).toLowerCase().trim();
                 const slotObj = zoomSlots.get(slotKey);
 
+                const resultItem = {
+                    semester,
+                    kode: course.kode,
+                    nama: course.nama,
+                    dosen: course.pengajar || '-',
+                    hari: course.hari,
+                    jam: `${course.jam_mulai_h || ''}:${course.jam_mulai_m || ''}`,
+                    slot: slotKey.toUpperCase(),
+                    zoomUrl: slotObj ? slotObj.link_zoom : '',
+                    status: 'failed',
+                    meetingTitle: '-',
+                    meetingDate: '-',
+                    reason: ''
+                };
+
                 if (!slotObj || !slotObj.link_zoom) {
                     console.warn(`[LEWATI] Tidak ada link Zoom untuk slot '${slotKey}' (${course.nama})`);
                     skipTotal++;
+                    resultItem.status = 'no_zoom_link';
+                    resultItem.reason = 'Link Zoom belum dikonfigurasi';
+                    courseResults.push(resultItem);
                     continue;
                 }
 
@@ -435,6 +549,11 @@ async function main() {
                 for (let attempt = 1; attempt <= 2; attempt++) {
                     try {
                         const res = await addVidconForCourse(page, course, slotObj.link_zoom, { isForce });
+                        resultItem.status = res.status || (res.success ? 'created' : 'failed');
+                        resultItem.meetingTitle = res.meetingTitle || '-';
+                        resultItem.meetingDate = res.meetingDate || '-';
+                        resultItem.reason = res.reason || '';
+
                         if (res.success) {
                             successTotal++;
                             success = true;
@@ -445,6 +564,7 @@ async function main() {
                         }
                     } catch (err) {
                         console.error(`⚠️ [PERINGATAN] Percobaan ${attempt} gagal pada ${course.nama}: ${err.message}`);
+                        resultItem.reason = err.message;
                         // Cek apakah sesi logout di tengah jalan
                         if (await auth.isLoginPage(page)) {
                             console.log('[AUTH] Terdeteksi logout otomatis. Melakukan re-login segera...');
@@ -457,6 +577,8 @@ async function main() {
                     }
                 }
 
+                courseResults.push(resultItem);
+
                 processedTotal++;
                 if (processedTotal >= limitCount) {
                     console.log(`\n[SELESAI] Berhenti setelah memproses ${processedTotal} mata kuliah (sesuai target batas run).`);
@@ -467,12 +589,35 @@ async function main() {
             }
         }
 
+        // Generate dan Simpan Laporan WhatsApp
+        const waReport = formatWhatsAppReport({
+            targetDay,
+            courses: courseResults
+        });
+
+        const waReportFile = path.join(DATA_DIR, 'last_report_wa.txt');
+        const jsonReportFile = path.join(DATA_DIR, 'last_report.json');
+        try {
+            fs.writeFileSync(waReportFile, waReport, 'utf8');
+            fs.writeFileSync(jsonReportFile, JSON.stringify({
+                generatedAt: new Date().toISOString(),
+                targetDay,
+                totalCourses: courseResults.length,
+                courses: courseResults
+            }, null, 2), 'utf8');
+        } catch (e) {}
+
         console.log('\n===========================================================');
         console.log('                   REKAPITULASI HASIL                      ');
         console.log('===========================================================');
         console.log(`Sukses Terproses : ${successTotal}`);
         console.log(`Gagal/Dilewati   : ${skipTotal}`);
-        console.log('===========================================================\n');
+        console.log('===========================================================');
+
+        console.log('\n================== LAPORAN WHATSAPP ==================');
+        console.log(waReport);
+        console.log('======================================================\n');
+        console.log(`💾 Laporan tersimpan di: ${waReportFile}`);
 
     } catch (err) {
         console.error(`❌ [FATAL ERROR]: ${err.message}`);
