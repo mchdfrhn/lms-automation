@@ -377,7 +377,9 @@ function formatWhatsAppReport({ targetDay, courses }) {
 
         list.forEach((c, idx) => {
             let badge = '✅ *Baru Terinput*';
-            if (c.status === 'already_exists') {
+            if (c.status === 'created') {
+                badge = '✅ *Baru Terinput*';
+            } else if (c.status === 'already_exists') {
                 badge = '🔹 *Sudah Siap (Aman)*';
             } else if (c.status === 'empty_dropdown') {
                 badge = '⚠️ *Dilewati (Praktikum / Non-Teori)*';
