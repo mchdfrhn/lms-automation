@@ -1,4 +1,45 @@
 {
+  "1": [
+    {
+      "kode": "PU 1206",
+      "kode_lengkap": "2024 - PU 1206 / 01",
+      "nama": "Matematika I",
+      "pengajar": "Dra. MARAMA NAMORA, M.T.",
+      "hari": "Selasa",
+      "tanggal": "15",
+      "jam_mulai_h": "19",
+      "jam_mulai_m": "00",
+      "jam_selesai_h": "20",
+      "jam_selesai_m": "30",
+      "kode_slot": "1"
+    },
+    {
+      "kode": "PU 1209",
+      "kode_lengkap": "2024 - PU 1209 / 01",
+      "nama": "Logika Teknologi dan Transformasi Digital (Internet of Things)",
+      "pengajar": "MUHAMMAD FAIZ SYAIFUL ISLAM, M.Si.",
+      "hari": "Rabu",
+      "tanggal": "16",
+      "jam_mulai_h": "19",
+      "jam_mulai_m": "00",
+      "jam_selesai_h": "20",
+      "jam_selesai_m": "30",
+      "kode_slot": "1"
+    },
+    {
+      "kode": "PU 1210",
+      "kode_lengkap": "2024 - PU 1210 / 01",
+      "nama": "Etika Profesi dan Pendidikan Anti Korupsi",
+      "pengajar": "Drs. GUNAWAN WIBISONO, M.T.",
+      "hari": "Rabu",
+      "tanggal": "16",
+      "jam_mulai_h": "20",
+      "jam_mulai_m": "31",
+      "jam_selesai_h": "21",
+      "jam_selesai_m": "30",
+      "kode_slot": "1"
+    }
+  ],
   "3": [
     {
       "kode": "TS 3325",

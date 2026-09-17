@@ -1,6 +1,6 @@
 # Panduan Lengkap Perintah Automasi Civitas LMS (STTPU)
 
-Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, manajemen data Zoom, dan konfigurasi automasi Civitas LMS untuk S1 Teknik Sipil Kelas Sore (Semester 3, 5, dan 7).
+Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, manajemen data Zoom, dan konfigurasi automasi Civitas LMS untuk S1 Teknik Sipil Kelas Sore (Semester 1, 3, 5, dan 7).
 
 ---
 
@@ -11,7 +11,7 @@ Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, ma
 | `node scripts/input-zoom.js` | **Mode Otomatis Harian**: Mendeteksi hari saat ini (Senin–Jumat) dan hanya memproses mata kuliah hari tersebut. | **Default untuk n8n / Cron Harian** |
 | `node scripts/input-zoom.js --test` | Menguji penginputan pada **1 mata kuliah saja** lalu berhenti. | Uji coba cepat verifikasi selector / akun |
 | `node scripts/input-zoom.js --day <Hari>` | Menjalankan khusus mata kuliah pada hari tertentu (misal: `--day Jumat`). | Simulasi atau input susulan hari tertentu |
-| `node scripts/input-zoom.js --all` | Menjalankan seluruh **34 mata kuliah** (Semua hari: Senin s/d Jumat). | Batch input awal semester untuk semua kelas |
+| `node scripts/input-zoom.js --all` | Menjalankan seluruh **37 mata kuliah** (Semua hari: Senin s/d Jumat). | Batch input awal semester untuk semua kelas |
 | `node scripts/input-zoom.js --force` | Memaksa membuat pertemuan berikutnya meskipun sesi hari ini sudah ada di LMS. | Jika ingin menyiapkan pertemuan minggu depan |
 | `node scripts/input-zoom.js --limit <N>` | Membatasi proses hanya sebanyak `N` mata kuliah (contoh: `--limit 3`). | Pengujian bertahap |
 | `npm run n8n` | Menjalankan dashboard n8n lokal dengan dukungan node `Execute Command`. | Menjalankan server jadwal n8n |
@@ -26,8 +26,8 @@ Perintah ini membaca hari sistem secara otomatis:
 node scripts/input-zoom.js
 ```
 * **Senin**: Memproses 8 mata kuliah hari Senin.
-* **Selasa**: Memproses 7 mata kuliah hari Selasa.
-* **Rabu**: Memproses 7 mata kuliah hari Rabu.
+* **Selasa**: Memproses 8 mata kuliah hari Selasa.
+* **Rabu**: Memproses 9 mata kuliah hari Rabu.
 * **Kamis**: Memproses 8 mata kuliah hari Kamis.
 * **Jumat**: Memproses 4 mata kuliah hari Jumat.
 * **Sabtu / Minggu**: Langsung selesai tanpa membuka browser.
@@ -53,7 +53,7 @@ node scripts/input-zoom.js --day Kamis --limit 2
 ---
 
 ### 3. Menjalankan Seluruh Mata Kuliah Sekaligus
-Jika Anda ingin memproses seluruh 34 mata kuliah (Semester 3, 5, dan 7) tanpa memfilter hari:
+Jika Anda ingin memproses seluruh 37 mata kuliah (Semester 1, 3, 5, dan 7) tanpa memfilter hari:
 ```bash
 node scripts/input-zoom.js --all
 ```
@@ -160,12 +160,14 @@ NODES_EXCLUDE=[]
 * **Semester 5**: Rekayasa Struktur Bangunan Beton (`TS 5347`), Manajemen Konstruksi (`TS 5351`)
 * **Semester 7**: Prasarana & Sarana PU Terpadu (`ST 7107`), Kerja Praktek (`TS 7364`), Manajemen Pemeliharaan Bangunan (`TS 7476`)
 
-### 🔹 Selasa (7 Mata Kuliah)
+### 🔹 Selasa (8 Mata Kuliah)
+* **Semester 1**: Matematika I (`PU 1206`) $\rightarrow$ Slot `1`
 * **Semester 3**: Fisika II (`TS 3326`), Pengelolaan Sumber Daya Air (`TS 3330`)
 * **Semester 5**: Rekayasa Struktur Bangunan Baja (`TS 5348`), Rekayasa Sungai dan Pantai (`TS 5355`)
 * **Semester 7**: Sistem Penjamin Mutu Teknik Sipil (`ST 7109`), Perencanaan Jembatan (`TS 7365`)
 
-### 🔹 Rabu (7 Mata Kuliah)
+### 🔹 Rabu (9 Mata Kuliah)
+* **Semester 1**: Logika Teknologi dan Transformasi Digital (`PU 1209`), Etika Profesi dan Pendidikan Anti Korupsi (`PU 1210`) $\rightarrow$ Slot `1`
 * **Semester 3**: Kimia Dasar (`TS 3327`), Transportasi & Rekayasa Lalu Lintas (`TS 3332`)
 * **Semester 5**: Pemodelan Struktur (`TS 5345`), Praktik Pemodelan Struktur (`TS 5346`), Rekayasa Perkerasan & Preservasi Jalan (`TS 5350`)
 * **Semester 7**: Teknologi dan Transformasi Digital (`ST 7105`), Etika Profesi (`ST 7106`)

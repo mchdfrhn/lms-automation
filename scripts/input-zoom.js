@@ -366,9 +366,9 @@ function formatWhatsAppReport({ targetDay, courses }) {
     report += `${headerStatus}\n`;
     report += `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    const semNames = { '3': 'Semester 3', '5': 'Semester 5', '7': 'Semester 7' };
+    const semNames = { '1': 'Semester 1', '3': 'Semester 3', '5': 'Semester 5', '7': 'Semester 7' };
 
-    for (const sem of ['3', '5', '7']) {
+    for (const sem of ['1', '3', '5', '7']) {
         const list = courses.filter(c => c.semester === sem);
         if (list.length === 0) continue;
 
@@ -455,7 +455,7 @@ async function main() {
     const coursesPerSemester = getCourses();
 
     // 3. Hitung jumlah mata kuliah yang terjadwal untuk hari target
-    const targetSemesters = ['3', '5', '7'];
+    const targetSemesters = ['1', '3', '5', '7'];
     let totalTargetCourses = 0;
     for (const sem of targetSemesters) {
         const list = coursesPerSemester[sem] || [];
