@@ -72,15 +72,15 @@ Buka file [`.env`](.env) dan sesuaikan kredensial Anda:
 LMS_URL=https://sttpu.operator.lms.civitas.id/
 
 # Kredensial Akun Operator
-LMS_USERNAME=farhan
+LMS_USERNAME=username_anda
 LMS_PASSWORD=password_anda
 
 # Mode Tampilan: false = jendela browser terlihat; true = berjalan di latar belakang
 HEADLESS=true
 
 # Notifikasi Telegram Bot
-TELEGRAM_BOT_TOKEN=123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ
-TELEGRAM_CHAT_ID=987654321
+TELEGRAM_BOT_TOKEN=token_bot_anda
+TELEGRAM_CHAT_ID=chat_id_anda
 ```
 
 ### 2. Hubungkan Bot Telegram
