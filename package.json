@@ -6,6 +6,9 @@
   "scripts": {
     "zoom": "node scripts/input-zoom.js",
     "test-zoom": "node scripts/input-zoom.js --test",
+    "presensi": "node scripts/presensi.js",
+    "presensi:today": "node scripts/presensi.js --today",
+    "presensi:dry": "node scripts/presensi.js --dry-run",
     "record": "node scripts/record.js",
     "gen-data": "node scripts/create-sample-data.js",
     "sync-excel": "node scripts/sync-excel.js",

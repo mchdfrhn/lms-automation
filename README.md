@@ -33,7 +33,7 @@
 
 ---
 
-## 📁 Struktur Folder
+## 📁 Struktur Folder (Modular Architecture)
 
 ```text
 c:\lms-automation\
@@ -42,21 +42,42 @@ c:\lms-automation\
 ├── COMMANDS.md               # Buku panduan lengkap perintah CLI & jadwal kuliah
 ├── package.json              # Daftar dependensi dan script npm
 ├── start-n8n.bat             # Runner n8n lokal dengan bypass Execute Command
+├── src/                      # Source code modular terstruktur
+│   ├── config/               # Konfigurasi terpusat & data loader
+│   │   ├── index.js          # Pengaturan env, path, konstanta hari & bulan
+│   │   └── data-loader.js    # Auto-sync Excel/JSON jadwal_zoom & daftar_matkul
+│   ├── core/                 # Shared LMS engine
+│   │   ├── auth.js           # Login & auto-relogin sesi 5 menit
+│   │   ├── browser.js        # Playwright browser lifecycle manager
+│   │   ├── navigation.js     # Helper reusable navigasi kelas, tab & sesi LMS
+│   │   └── reporter.js       # Formatter & dispatcher Telegram & WhatsApp
+│   ├── modules/              # Fitur automasi independen
+│   │   ├── zoom/             # Modul automasi input link Vidcon/Zoom
+│   │   │   ├── parser.js     # Parser dropdown pertemuan Civitas LMS
+│   │   │   └── service.js    # Engine pembuatan vidcon harian & batch
+│   │   └── presensi/         # Modul automasi presensi mahasiswa
+│   │       ├── parser.js     # Parser data tabel & status kehadiran mahasiswa
+│   │       └── service.js    # Runner presensi & template aksi interaktif
+│   └── service/              # Background daemon & service manager
+│       ├── daemon.js         # Watchdog daemon penjaga kestabilan n8n lokal
+│       └── manager.js        # Service CLI manager (status, start, stop, autostart)
+├── scripts/                  # CLI Entry-points (Backwards Compatible)
+│   ├── input-zoom.js         # CLI entry-point input Zoom (wrapper ke src/modules/zoom)
+│   ├── presensi.js           # CLI entry-point presensi mahasiswa (wrapper ke src/modules/presensi)
+│   ├── manage-service.js     # CLI entry-point manajemen service background
+│   ├── n8n-daemon.js         # Entry-point watchdog daemon
+│   ├── get-chat-id.js        # Utilitas pendeteksi Chat ID Telegram
+│   ├── sync-excel.js         # Sinkronisasi jadwal_zoom JSON <-> Excel
+│   ├── create-sample-data.js # Generator sample data mata kuliah
+│   └── record.js             # Codegen interaktif Playwright
 ├── data/
 │   ├── daftar_matkul.json    # Database jadwal 37 mata kuliah (Sem 1, 3, 5, 7)
 │   ├── jadwal_zoom.json      # Konfigurasi link Zoom per kode slot
 │   ├── jadwal_zoom.xlsx      # Spreadsheet Excel jadwal dan link Zoom
 │   ├── last_report_wa.txt    # Salinan teks laporan eksekusi terakhir
-│   └── last_report.json      # Metadata laporan terakhir dalam format JSON
-├── scripts/
-│   ├── input-zoom.js         # Engine utama automasi penginputan link Zoom
-│   ├── n8n-daemon.js         # Watchdog daemon penjaga kestabilan n8n lokal
-│   ├── manage-service.js     # CLI manajemen service background & autostart
-│   ├── auth.js               # Handler login & auto-relogin sesi 5 menit
-│   ├── telegram.js           # Modul pengirim notifikasi ke Telegram Bot
-│   ├── get-chat-id.js        # Utilitas pendeteksi Chat ID Telegram otomatis
-│   ├── sync-excel.js         # Generator sinkronisasi JSON ke jadwal_zoom.xlsx
-│   └── record.js             # Recorder interaktif Playwright Codegen
+│   └── last_report.json      # Metadata laporan terakhir format JSON
+├── logs/
+│   └── n8n.log               # Log aktivitas server background n8n
 └── n8n-workflows/
     └── lms-daily-workflow.json # Workflow template n8n cron harian
 ```
@@ -112,6 +133,9 @@ Periksa aplikasi Telegram Anda untuk memastikan laporan eksekusi masuk dengan st
 | `node scripts/input-zoom.js --all` | **Semua Mata Kuliah** | Menjalankan seluruh 37 mata kuliah (Senin s/d Jumat) |
 | `node scripts/input-zoom.js --limit <N>` | **Batasi Jumlah Run** | Membatasi proses sebanyak `N` mata kuliah (contoh: `--limit 2`) |
 | `node scripts/input-zoom.js --force` | **Paksa Buat Sesi Baru** | Membuat pertemuan berikutnya meski sesi hari ini sudah ada |
+| `node scripts/presensi.js` | **Presensi Mahasiswa (Hari Ini)** | Menjalankan pipeline presensi mahasiswa |
+| `node scripts/presensi.js --dry-run` | **Pratinjau Presensi** | Cek data kehadiran tanpa mengubah status |
+| `node scripts/presensi.js --matkul <ID>` | **Presensi Matkul Tertentu** | Contoh: `--matkul "TS 3325"` |
 | `npm run telegram:check` | **Pengecekan Bot Telegram** | Mendeteksi Chat ID dan mengirimkan pesan tes ke Telegram |
 | `npm run sync-excel` | **Sinkronisasi Excel** | Memperbarui file `jadwal_zoom.xlsx` dari database JSON |
 | `npm run n8n` | **Jalankan n8n Lokal** | Memulai server n8n dengan izin node *Execute Command* |
