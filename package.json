@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "zoom": "node scripts/input-zoom.js",
+    "zoom:only": "node scripts/input-zoom.js --skip-presensi",
     "test-zoom": "node scripts/input-zoom.js --test",
     "presensi": "node scripts/presensi.js",
     "presensi:today": "node scripts/presensi.js --today",

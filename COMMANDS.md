@@ -8,13 +8,15 @@ Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, ma
 
 | Perintah | Deskripsi | Kapan Digunakan |
 | :--- | :--- | :--- |
-| `node scripts/input-zoom.js` | **Mode Otomatis Harian**: Mendeteksi hari & tanggal saat ini (Senin–Jumat) dan hanya memproses jadwal pada tanggal tersebut. | **Default untuk n8n / Cron Harian** |
-| `node scripts/input-zoom.js --test` | Menguji penginputan pada **1 mata kuliah saja** lalu berhenti. | Uji coba cepat verifikasi selector / akun |
+| `node scripts/input-zoom.js` | **Pipeline Harian Terpadu (2 Tahap)**: <br>1. Memvalidasi & menginput link Zoom untuk jadwal hari ini.<br>2. Mengimpersonasi akun dosen pengajar untuk mengaktifkan centang presensi *"Mengikuti Vidcon"* **hanya** untuk kelas yang link Zoom-nya sudah terinput di LMS. | **Default untuk n8n / Windows Task Scheduler / Cron Harian** |
+| `node scripts/input-zoom.js --skip-presensi` | Menjalankan **Tahap 1 saja** (hanya input Zoom, melewati aktivasi presensi). | Jika hanya ingin memproses link Zoom tanpa presensi |
+| `node scripts/input-zoom.js --test` | Menguji alur terpadu pada **1 mata kuliah saja** lalu berhenti. | Uji coba cepat verifikasi selector / akun |
 | `node scripts/input-zoom.js --day <Hari>` | Menjalankan khusus mata kuliah pada hari tertentu (misal: `--day Jumat`). | Simulasi atau input susulan hari tertentu |
 | `node scripts/input-zoom.js --date <YYYY-MM-DD>` | Menjalankan dengan target tanggal spesifik (misal: `--date 2026-09-18`). | Pengujian tanggal kalender tertentu |
 | `node scripts/input-zoom.js --all` | Menjalankan seluruh **37 mata kuliah** (Semua hari: Senin s/d Jumat). | Batch input awal semester untuk semua kelas |
 | `node scripts/input-zoom.js --force` | Memaksa membuat pertemuan berikutnya meskipun sesi hari ini sudah ada di LMS. | Jika ingin menyiapkan pertemuan minggu depan |
 | `node scripts/input-zoom.js --limit <N>` | Membatasi proses hanya sebanyak `N` mata kuliah (contoh: `--limit 3`). | Pengujian bertahap |
+| `node scripts/presensi.js` | Menjalankan **Aktivasi Presensi Mandiri** (impersonasi dosen pengajar untuk centang *"Mengikuti Vidcon"*). | Jika ingin mengeksekusi presensi terpisah |
 | `npm run telegram:check` | Memeriksa token bot Telegram, mendeteksi Chat ID akun Anda, dan mengirim pesan tes. | Setup & uji coba notifikasi Telegram |
 | `npm run service:status` | Mengecek status Watchdog Daemon, server n8n, dan status autostart Windows. | Monitoring produksi lokal |
 | `npm run service:start` | Menjalankan n8n di latar belakang tanpa jendela CMD (*silent background*). | Memulai layanan mandiri |
@@ -26,23 +28,29 @@ Dokumen ini berisi panduan lengkap perintah (*command guide*), opsi eksekusi, ma
 
 ## 🚀 Panduan Penggunaan & Contoh Perintah
 
-### 1. Eksekusi Harian Otomatis (Standar n8n)
-Perintah ini membaca hari dan tanggal sistem secara otomatis:
+### 1. Eksekusi Harian Otomatis (Standar n8n & Windows Task Scheduler)
+Perintah ini membaca hari dan tanggal sistem secara otomatis, lalu menjalankan **2 Tahap Berurutan**:
 ```bash
 node scripts/input-zoom.js
 ```
-* **Senin**: Memproses 8 mata kuliah hari Senin.
-* **Selasa**: Memproses 8 mata kuliah hari Selasa.
-* **Rabu**: Memproses 9 mata kuliah hari Rabu (termasuk kelas gabungan Sem 1 & 7).
-* **Kamis**: Memproses 8 mata kuliah hari Kamis (termasuk 3 matkul pilihan).
-* **Jumat**: Memproses 4 mata kuliah hari Jumat.
-* **Sabtu / Minggu**: Langsung selesai tanpa membuka browser.
+* **Tahap 1 (Input & Verifikasi Zoom)**:
+  - Membuka LMS sebagai Operator.
+  - Memeriksa jadwal perkuliahan hari ini (Senin–Jumat).
+  - Menginput link Zoom pada dropdown sesi tanggal hari ini (atau memverifikasi jika sudah terdaftar).
+  - Mengirimkan laporan Zoom ke Telegram.
+* **Tahap 2 (Aktivasi Presensi Mahasiswa)**:
+  - **Syarat Mutlak**: Hanya dijalankan untuk mata kuliah yang Zoom-nya **terkonfirmasi terinput** di Tahap 1 (`status: created` atau `already_exists`). Kelas yang tidak memiliki link Zoom hari ini otomatis dilewati.
+  - Melakukan impersonasi ("Login Akun Lain") ke masing-masing dosen pengajar.
+  - Masuk ke portal dosen $\rightarrow$ buka mata kuliah $\rightarrow$ buka sesi pertemuan $\rightarrow$ aktifkan centang **"Mengikuti Vidcon"** (auto-save).
+  - Mengirimkan laporan hasil presensi ke Telegram.
 
 > [!IMPORTANT]
-> **Proteksi Ketat Tanggal Hari Ini (Anti-Lompat Minggu):**
+> **Proteksi Ketat Tanggal Hari Ini (Anti-Lompat Minggu) & Prasyarat Presensi:**
 > 1. Bot hanya mencari pertemuan di dropdown LMS yang tanggalnya **persis sama** dengan tanggal eksekusi (`targetDate`).
 > 2. Jika pertemuan untuk tanggal hari ini sudah ada di tab Vidcon (misal `Kuliah 1`), bot mendeteksi `already_exists` dan **langsung melewatinya (skip)**.
 > 3. Jika tidak ada sesi perkuliahan pada tanggal hari ini (misal libur/UTS), bot melewatinya (`no_session_today`) dan **TIDAK AKAN** melompat membuat sesi minggu/bulan berikutnya (kecuali menggunakan opsi `--force`).
+> 4. Presensi mahasiswa **TIDAK AKAN PERNAH** diaktifkan jika sesi Zoom pada hari itu belum terinput di LMS.
+> 5. Jika ingin menjalankan penginputan Zoom saja tanpa menyentuh presensi, gunakan flag `--skip-presensi`.
 
 ---
 

@@ -1,5 +1,5 @@
 # 🎓 LMS Civitas Operator Automation (STTPU)
-> **Automasi Input Link Vidcon / Zoom Civitas LMS S1 Teknik Sipil (Kelas Sore) dengan Notifikasi Bot Telegram & Integrasi Penjadwalan n8n.**
+> **Automasi Terpadu Input Link Vidcon / Zoom Civitas LMS & Aktivasi Presensi Mahasiswa S1 Teknik Sipil (Kelas Sore) dengan Notifikasi Bot Telegram & Integrasi Penjadwalan n8n.**
 
 [![Playwright](https://img.shields.io/badge/Playwright-Automated_Browser-45ba4b.svg)](https://playwright.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-v24+-339933.svg)](https://nodejs.org/)
@@ -10,6 +10,9 @@
 
 ## 🌟 Fitur Utama Sistem
 
+* 🔄 **Pipeline Harian Terpadu (2 Tahap Otomatis)**:
+  1. **Tahap 1 (Zoom)**: Menginput dan memverifikasi link Vidcon/Zoom pada dropdown pertemuan LMS untuk jadwal hari ini.
+  2. **Tahap 2 (Presensi Mahasiswa)**: Melakukan impersonasi akun dosen pengajar ("Login Akun Lain") untuk mengaktifkan opsi *"Mengikuti Vidcon"* (auto-save). **Syarat Mutlak**: Tahap 2 hanya dijalankan pada kelas yang link Zoom-nya sudah terkonfirmasi ada di Tahap 1.
 * 📅 **Eksekusi Harian Ketat Tanggal (*Strict Daily Date Execution*)**:
   Bot dieksekusi secara harian, mendeteksi tanggal kalender saat ini (`targetDate`), dan **hanya memproses jadwal yang persis ada pada tanggal tersebut**. Penamaan link vidcon terstandarisasi rapi: `Kuliah 1` untuk Pertemuan 1, `Kuliah 2` untuk Pertemuan 2, dst. Akhir pekan (Sabtu/Minggu) otomatis libur tanpa membuka browser.
 * 🛡️ **Proteksi Idempoten & Anti-Lompat Minggu (*Strict Idempotency*)**:
@@ -126,14 +129,15 @@ Periksa aplikasi Telegram Anda untuk memastikan laporan eksekusi masuk dengan st
 
 | Perintah | Fungsi | Keterangan |
 | :--- | :--- | :--- |
-| `node scripts/input-zoom.js` | **Mode Harian Otomatis** | Menjalankan jadwal hari ini & tanggal hari ini (Default n8n) |
-| `node scripts/input-zoom.js --test` | **Test Run (1 Matkul)** | Menguji coba 1 mata kuliah saja untuk verifikasi |
+| `node scripts/input-zoom.js` | **Pipeline Harian Terpadu** | Menjalankan Tahap 1 (Input Zoom) $\rightarrow$ Tahap 2 (Presensi Vidcon Mahasiswa) |
+| `node scripts/input-zoom.js --skip-presensi` | **Hanya Input Zoom** | Menjalankan Tahap 1 saja tanpa menyentuh presensi mahasiswa |
+| `node scripts/input-zoom.js --test` | **Test Run (1 Matkul)** | Menguji coba alur pada 1 mata kuliah saja untuk verifikasi |
 | `node scripts/input-zoom.js --day <Hari>` | **Jadwal Hari Tertentu** | Contoh: `--day Selasa` atau `--day Jumat` |
 | `node scripts/input-zoom.js --date <YYYY-MM-DD>` | **Target Tanggal Kalender** | Contoh: `--date 2026-09-18` |
 | `node scripts/input-zoom.js --all` | **Semua Mata Kuliah** | Menjalankan seluruh 37 mata kuliah (Senin s/d Jumat) |
 | `node scripts/input-zoom.js --limit <N>` | **Batasi Jumlah Run** | Membatasi proses sebanyak `N` mata kuliah (contoh: `--limit 2`) |
 | `node scripts/input-zoom.js --force` | **Paksa Buat Sesi Baru** | Membuat pertemuan berikutnya meski sesi hari ini sudah ada |
-| `node scripts/presensi.js` | **Presensi Mahasiswa (Hari Ini)** | Menjalankan pipeline presensi mahasiswa |
+| `node scripts/presensi.js` | **Presensi Mahasiswa (Mandiri)**| Menjalankan aktivasi presensi terpisah dari alur Zoom |
 | `node scripts/presensi.js --dry-run` | **Pratinjau Presensi** | Cek data kehadiran tanpa mengubah status |
 | `node scripts/presensi.js --matkul <ID>` | **Presensi Matkul Tertentu** | Contoh: `--matkul "TS 3325"` |
 | `npm run telegram:check` | **Pengecekan Bot Telegram** | Mendeteksi Chat ID dan mengirimkan pesan tes ke Telegram |

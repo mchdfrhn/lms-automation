@@ -208,8 +208,16 @@ async function processLecturerCourses(operatorPage, pengajarName, courses, optio
             await dosenPage.waitForLoadState('domcontentloaded');
             await dosenPage.waitForTimeout(2500);
 
-            // Klik sesi pertemuan target (Pertemuan 1, dsb)
-            const sessionTitle = `Pertemuan ${sessionNumber}`;
+            // Klik sesi pertemuan target (mengikuti nomor sesi Zoom yang terdaftar jika ada)
+            let sessionTitle = `Pertemuan ${sessionNumber}`;
+            if (course.meetingTitle && course.meetingTitle !== '-') {
+                const matchNum = course.meetingTitle.match(/\d+/);
+                if (matchNum) {
+                    sessionTitle = `Pertemuan ${matchNum[0]}`;
+                }
+            }
+            itemResult.sessionTitle = sessionTitle;
+
             const sessionBtn = dosenPage.getByText(sessionTitle, { exact: false }).first();
             if (!await sessionBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
                 console.warn(`⚠️ Sesi "${sessionTitle}" tidak ditemukan.`);
@@ -318,12 +326,17 @@ async function runPresensiAutomation(options = {}) {
     const targetSemesters = ['1', '3', '5', '7'];
 
     let scheduledCourses = [];
-    for (const sem of targetSemesters) {
-        const list = coursesPerSemester[sem] || [];
-        const filtered = targetDay === 'Semua'
-            ? list
-            : list.filter(c => c.hari && c.hari.toLowerCase() === targetDay.toLowerCase());
-        scheduledCourses = scheduledCourses.concat(filtered);
+    if (options.courses && Array.isArray(options.courses)) {
+        // Gunakan daftar matkul yang sudah divalidasi (misal: link Zoom-nya sudah terkonfirmasi ada)
+        scheduledCourses = options.courses;
+    } else {
+        for (const sem of targetSemesters) {
+            const list = coursesPerSemester[sem] || [];
+            const filtered = targetDay === 'Semua'
+                ? list
+                : list.filter(c => c.hari && c.hari.toLowerCase() === targetDay.toLowerCase());
+            scheduledCourses = scheduledCourses.concat(filtered);
+        }
     }
 
     if (options.courseCode) {
@@ -345,7 +358,7 @@ async function runPresensiAutomation(options = {}) {
     // Kelompokkan mata kuliah berdasarkan Dosen Pengajar
     const lecturerMap = new Map();
     for (const c of scheduledCourses) {
-        const dosen = (c.pengajar || '').trim();
+        const dosen = (c.pengajar || c.dosen || '').trim();
         if (!dosen || dosen === '-') {
             console.warn(`⚠️ [SKIP] Dosen belum ditentukan untuk ${c.nama} (${c.kode})`);
             continue;
@@ -353,7 +366,10 @@ async function runPresensiAutomation(options = {}) {
         if (!lecturerMap.has(dosen)) {
             lecturerMap.set(dosen, []);
         }
-        lecturerMap.get(dosen).push(c);
+        lecturerMap.get(dosen).push({
+            ...c,
+            pengajar: dosen
+        });
     }
 
     console.log('===========================================================');

@@ -1,6 +1,6 @@
 📋 *LAPORAN AUTOMASI PRESENSI LMS CIVITAS*
 🗓️ *Jadwal :* Jumat, 18 September 2026
-⏰ *Waktu  :* 17.29 WIB
+⏰ *Waktu  :* 17.38 WIB
 🎓 *Target :* Aktivasi Presensi Vidcon (Kelas Sore)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✅ *STATUS: SEMUA PRESENSI VIDCON TERPASANG*
@@ -16,19 +16,14 @@
    • Sesi   : Pertemuan 1
    • Status : 🔹 *Sudah Aktif (Aman)*
 
-3. *Ekonomi Rekayasa dan Analisis Finansial* (`TS 5352`)
-   • Dosen  : EKO NURLITA WIDAYATI, S.T., M.T.
-   • Sesi   : Pertemuan 1
-   • Status : 🔹 *Sudah Aktif (Aman)*
-
-4. *Kewirausahaan Teknik Sipil* (`TS 7363`)
+3. *Kewirausahaan Teknik Sipil* (`TS 7363`)
    • Dosen  : Ir. BAMBANG TRI SUKMONO, MT
    • Sesi   : Pertemuan 1
    • Status : 🔹 *Sudah Aktif (Aman)*
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 *RINGKASAN EKSEKUSI PRESENSI:*
-• Total Target   : 4 mata kuliah
-• Sudah Aktif    : 4
+• Total Target   : 3 mata kuliah
+• Sudah Aktif    : 3
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 _Automasi Presensi Civitas LMS Operator_
