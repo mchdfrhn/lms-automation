@@ -423,12 +423,14 @@ async function runPresensiAutomation(options = {}) {
             fs.writeFileSync(reportFile, report, 'utf8');
         } catch (e) {}
 
-        if (!options.dryRun || options.notify) {
+        if (options.notify !== false && (!options.dryRun || options.notify)) {
             await sendTelegramMessage(report);
         }
 
         return {
             success: true,
+            targetDay,
+            targetDate: new Date(),
             results: allResults,
             report
         };

@@ -1,0 +1,43 @@
+📋 *LAPORAN HARIAN TERPADU LMS CIVITAS*
+🗓️ *Jadwal :* Jumat, 18 September 2026
+⏰ *Waktu  :* 17.50 WIB
+🎓 *Target :* S1 Teknik Sipil (Kelas Sore)
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ *STATUS: SEMUA JADWAL & PRESENSI AMAN*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 *Semester 3* (2 Mata Kuliah)
+1. *Matematika III* (`TS 3325`)
+   • Dosen    : Dra. MARAMA NAMORA, M.T.
+   • Sesi     : Kuliah 1 (19:00 WIB)
+   • Link Zoom: 🔹 *Sudah Siap* (Slot 3)
+   • Presensi : 🔹 *Sudah Aktif (Ikut Vidcon)*
+
+2. *Surveying dan Sistem Informasi Geografis* (`TS 3334`)
+   • Dosen    : ANDIKA SETIAWAN
+   • Sesi     : Kuliah 1 (20:31 WIB)
+   • Link Zoom: 🔹 *Sudah Siap* (Slot 3)
+   • Presensi : 🔹 *Sudah Aktif (Ikut Vidcon)*
+
+📚 *Semester 5* (1 Mata Kuliah)
+1. *Ekonomi Rekayasa dan Analisis Finansial* (`TS 5352`)
+   • Dosen    : EKO NURLITA WIDAYATI, S.T., M.T.
+   • Sesi     : 19:00 WIB
+   • Link Zoom: ⚪ *Tidak Ada Jadwal Hari Ini*
+   • Presensi : ⚪ *Dilewati (Tidak Ada Zoom)*
+
+📚 *Semester 7* (1 Mata Kuliah)
+1. *Kewirausahaan Teknik Sipil* (`TS 7363`)
+   • Dosen    : Ir. BAMBANG TRI SUKMONO, MT
+   • Sesi     : Kuliah 1 (19:00 WIB)
+   • Link Zoom: 🔹 *Sudah Siap* (Slot 7A)
+   • Presensi : 🔹 *Sudah Aktif (Ikut Vidcon)*
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 *RINGKASAN EKSEKUSI TERPADU:*
+• Total Terjadwal : 4 mata kuliah
+• Zoom Siap / Ada : 3 mata kuliah
+• Presensi Aktif  : 3 mata kuliah
+• Tanpa Jadwal    : 1 mata kuliah
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+_Automasi Terpadu Civitas LMS Operator_

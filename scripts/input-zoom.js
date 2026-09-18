@@ -1,9 +1,12 @@
 require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
 const config = require('../src/config');
 const { getZoomSlots } = require('../src/config/data-loader');
 const { parseMeetingOption } = require('../src/modules/zoom/parser');
 const { addVidconForCourse, runZoomAutomation } = require('../src/modules/zoom/service');
 const { runPresensiAutomation } = require('../src/modules/presensi/service');
+const { sendTelegramMessage, formatUnifiedReport } = require('../src/core/reporter');
 
 /**
  * =========================================================================
@@ -54,15 +57,23 @@ async function main() {
     console.log('>>> TAHAP 1: INPUT & VERIFIKASI LINK VIDCON / ZOOM         ');
     console.log('===========================================================');
 
+    // Jika skipPresensi, kirim notifikasi langsung dari Tahap 1.
+    // Jika pipeline terpadu (default), tahan notifikasi (notify: false) untuk digabung di Tahap 3.
     const zoomResult = await runZoomAutomation({
         day,
         targetDate,
         isForce,
-        limitCount
+        limitCount,
+        notify: skipPresensi
     });
 
     if (skipPresensi) {
         console.log('\nℹ️ [PRESENSI] Dilewati karena opsi --skip-presensi disertakan.');
+        return;
+    }
+
+    if (!zoomResult || !zoomResult.courses || zoomResult.courses.length === 0) {
+        console.log('\nℹ️ Tidak ada jadwal atau proses selesai (Libur/Weekend).');
         return;
     }
 
@@ -71,26 +82,55 @@ async function main() {
     // Syarat Mutlak: Hanya kelas yang link Zoom-nya sudah terinput di LMS
     // (status 'created' atau 'already_exists')
     // =========================================================================
-    const validZoomCourses = (zoomResult?.courses || []).filter(c =>
+    const validZoomCourses = (zoomResult.courses || []).filter(c =>
         c.status === 'created' || c.status === 'already_exists'
     );
 
+    let presensiResult = { results: [] };
+
     if (validZoomCourses.length === 0) {
-        console.log('\nℹ️ [PRESENSI] Tidak ada mata kuliah dengan link Zoom aktif untuk jadwal ini. Selesai.');
-        return;
+        console.log('\nℹ️ [PRESENSI] Tidak ada mata kuliah dengan link Zoom aktif untuk jadwal ini. Melewati Tahap 2.');
+    } else {
+        console.log('\n===========================================================');
+        console.log('>>> TAHAP 2: AKTIVASI PRESENSI MAHASISWA (IKUT VIDCON)      ');
+        console.log(`    (Dijalankan untuk ${validZoomCourses.length} matkul yang Zoom-nya sudah terinput)`);
+        console.log('===========================================================');
+
+        presensiResult = await runPresensiAutomation({
+            day,
+            courses: validZoomCourses,
+            dryRun: false,
+            notify: false // Tahan notifikasi terpisah, akan digabungkan di Tahap 3
+        });
     }
 
+    // =========================================================================
+    // TAHAP 3: LAPORAN HARIAN TERPADU TELEGRAM (1 PESAN GABUNGAN)
+    // =========================================================================
     console.log('\n===========================================================');
-    console.log('>>> TAHAP 2: AKTIVASI PRESENSI MAHASISWA (IKUT VIDCON)      ');
-    console.log(`    (Dijalankan untuk ${validZoomCourses.length} matkul yang Zoom-nya sudah terinput)`);
+    console.log('>>> TAHAP 3: MENGIRIM LAPORAN TERPADU KE TELEGRAM          ');
     console.log('===========================================================');
 
-    await runPresensiAutomation({
-        day,
-        courses: validZoomCourses,
-        dryRun: false,
-        notify: true
+    const unifiedReport = formatUnifiedReport({
+        targetDay: zoomResult.targetDay || day || config.HARI_MAP[new Date().getDay()],
+        targetDate: zoomResult.targetDate || targetDate || new Date(),
+        courses: zoomResult.courses || [],
+        presensiResults: presensiResult.results || []
     });
+
+    console.log('\n================== LAPORAN TERPADU ==================');
+    console.log(unifiedReport);
+    console.log('=====================================================\n');
+
+    // Simpan salinan teks laporan terpadu ke file
+    const unifiedReportFile = path.join(config.DATA_DIR, 'last_unified_report.txt');
+    const waReportFile = path.join(config.DATA_DIR, 'last_report_wa.txt');
+    try {
+        fs.writeFileSync(unifiedReportFile, unifiedReport, 'utf8');
+        fs.writeFileSync(waReportFile, unifiedReport, 'utf8');
+    } catch (e) {}
+
+    await sendTelegramMessage(unifiedReport);
 }
 
 if (require.main === module) {

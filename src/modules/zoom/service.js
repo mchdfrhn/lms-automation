@@ -486,10 +486,14 @@ async function runZoomAutomation(options = {}) {
         console.log(waReport);
         console.log('======================================================\n');
 
-        await sendTelegramMessage(waReport);
+        if (options.notify !== false) {
+            await sendTelegramMessage(waReport);
+        }
 
         return {
             success: true,
+            targetDay,
+            targetDate: targetDateObj,
             courses: courseResults,
             report: waReport
         };
