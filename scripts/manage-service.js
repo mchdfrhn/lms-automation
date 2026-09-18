@@ -67,12 +67,12 @@ async function handleStatus() {
     console.log(`• Windows Autostart: ${hasStartupFile ? '🟢 AKTIF (Startup Folder)' : '🟡 BELUM AKTIF'}`);
 
     // Cek Task Scheduler
-    let hasTask = false;
+    let hasDailyCronTask = false;
     try {
-        const taskQuery = execSync(`schtasks /Query /TN "${taskName}" 2>&1`, { encoding: 'utf8' });
-        if (taskQuery.includes(taskName)) hasTask = true;
+        const taskQuery = execSync(`schtasks /Query /TN "LMS-Civitas-Daily-Cron" 2>&1`, { encoding: 'utf8' });
+        if (taskQuery.includes('LMS-Civitas-Daily-Cron')) hasDailyCronTask = true;
     } catch (e) {}
-    console.log(`• Task Scheduler  : ${hasTask ? '🟢 TERDAFTAR (OnLogon)' : '⚪ TIDAK TERDAFTAR'}`);
+    console.log(`• Task Scheduler  : ${hasDailyCronTask ? '🟢 AKTIF (Senin-Jumat 07:00 WIB + Catch-up Missed Run)' : '⚪ TIDAK TERDAFTAR'}`);
 
     console.log('===========================================================');
     if (!daemonRunning || !health.ok) {
