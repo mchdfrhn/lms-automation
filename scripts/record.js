@@ -1,32 +1,41 @@
 require('dotenv').config();
 const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
 
 /**
  * Script Perekam Aksi (Playwright Codegen)
- * Gunakan skrip ini untuk merekam alur kerja di portal operator LMS Anda.
- * 
- * Jalankan:
- * npm run record
+ * Merekam setiap klik, input, dan navigasi di LMS Civitas,
+ * lalu otomatis menyimpannya ke file scratch/recorded-steps.js.
  */
 
-const targetUrl = process.argv[2] || process.env.LMS_URL || 'https://google.com';
+const targetUrl = process.argv[2] || process.env.LMS_URL || 'https://sttpu.operator.lms.civitas.id/';
+const scratchDir = path.join(__dirname, '..', 'scratch');
+if (!fs.existsSync(scratchDir)) {
+    fs.mkdirSync(scratchDir, { recursive: true });
+}
+
+const outputFile = path.join(scratchDir, 'recorded-steps.js');
 
 console.log('====================================================');
-console.log('  PLAYWRIGHT CODEGEN RECORDER (LMS OPERATOR)');
+console.log('    PLAYWRIGHT CODEGEN RECORDER (LMS CIVITAS)       ');
 console.log('====================================================');
-console.log(`Membuka URL target: ${targetUrl}`);
-console.log('Petunjuk:');
-console.log('1. Jendela browser dan jendela Playwright Inspector akan terbuka.');
-console.log('2. Lakukan login dan aksi pengisian link Zoom seperti biasa.');
-console.log('3. Playwright akan otomatis mencatat nama tombol, form input, dan link.');
-console.log('4. Tutup jendela browser jika sudah selesai merekam.');
+console.log(`Target URL : ${targetUrl}`);
+console.log(`Simpan ke  : scratch/recorded-steps.js`);
+console.log('\nPetunjuk Penggunaan:');
+console.log('1. Jendela browser Chromium dan jendela "Playwright Inspector" akan terbuka.');
+console.log('2. Silakan login dan lakukan klik/centang presensi seperti yang biasa Anda lakukan.');
+console.log('3. Setiap tombol yang Anda klik akan otomatis dicatat.');
+console.log('4. Jika sudah selesai, cukup TUTUP jendela browser tersebut.');
+console.log('5. Hasil rekaman kode akan otomatis tersimpan di: scratch/recorded-steps.js');
 console.log('====================================================\n');
 
-const codegen = spawn('npx', ['playwright', 'codegen', targetUrl], {
+const codegen = spawn('npx', ['playwright', 'codegen', '-o', `"${outputFile}"`, targetUrl], {
     shell: true,
     stdio: 'inherit'
 });
 
 codegen.on('close', (code) => {
-    console.log(`[RECORDER] Perekam selesai dengan kode exit: ${code}`);
+    console.log(`\n[RECORDER] Selesai! Kode rekaman tersimpan di: ${outputFile}`);
+    console.log('Anda cukup memberi tahu saya "sudah direkam", nanti saya akan membaca file tersebut.');
 });
