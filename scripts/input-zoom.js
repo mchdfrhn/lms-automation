@@ -19,7 +19,61 @@ const { sendTelegramMessage, formatUnifiedReport } = require('../src/core/report
  * Kompatibel 100% dengan cron harian n8n, Windows Task Scheduler, dan npm scripts.
  */
 
+function isProcessAlive(pid) {
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 async function main() {
+    // =========================================================================
+    // PROTEKSI EKSEKUSI GANDA (SINGLE INSTANCE FILE LOCK)
+    // =========================================================================
+    const lockFile = path.join(config.DATA_DIR, 'execution.lock');
+    if (fs.existsSync(lockFile)) {
+        try {
+            const lockData = JSON.parse(fs.readFileSync(lockFile, 'utf8'));
+            if (lockData.pid && isProcessAlive(lockData.pid)) {
+                console.warn(`\n⚠️ [LOCK] Automasi sedang berjalan oleh proses lain (PID: ${lockData.pid}, sejak ${lockData.startedAt}).`);
+                console.warn(`   Melewati eksekusi ini untuk mencegah duplikasi proses dan laporan Telegram.\n`);
+                return;
+            } else {
+                console.log(`ℹ️ [LOCK] Menemukan lock usang (PID: ${lockData.pid} sudah berhenti). Memperbarui lock.`);
+            }
+        } catch (e) {}
+    }
+
+    try {
+        fs.writeFileSync(lockFile, JSON.stringify({
+            pid: process.pid,
+            startedAt: new Date().toISOString()
+        }), 'utf8');
+    } catch (e) {}
+
+    const cleanupLock = () => {
+        try {
+            if (fs.existsSync(lockFile)) {
+                const cur = JSON.parse(fs.readFileSync(lockFile, 'utf8'));
+                if (cur.pid === process.pid) fs.unlinkSync(lockFile);
+            }
+        } catch (e) {}
+    };
+
+    process.on('exit', cleanupLock);
+    process.on('SIGINT', () => { cleanupLock(); process.exit(0); });
+    process.on('SIGTERM', () => { cleanupLock(); process.exit(0); });
+
+    try {
+        await runPipeline();
+    } finally {
+        cleanupLock();
+    }
+}
+
+async function runPipeline() {
     const isAllDays = process.argv.includes('--all') || process.argv.includes('-a');
     const dayArgIdx = process.argv.findIndex(a => a === '--day' || a === '-d');
     const dateArgIdx = process.argv.findIndex(a => a === '--date');

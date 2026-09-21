@@ -1,29 +1,45 @@
 📋 *LAPORAN AUTOMASI PRESENSI LMS CIVITAS*
-🗓️ *Jadwal :* Jumat, 18 September 2026
-⏰ *Waktu  :* 17.50 WIB
+🗓️ *Jadwal :* Senin, 21 September 2026
+⏰ *Waktu  :* 07.04 WIB
 🎓 *Target :* Aktivasi Presensi Vidcon (Kelas Sore)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ *STATUS: SEMUA PRESENSI VIDCON TERPASANG*
+⚠️ *STATUS: 2 KELAS MEMERLUKAN PERHATIAN*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. *Matematika III* (`TS 3325`)
-   • Dosen  : Dra. MARAMA NAMORA, M.T.
-   • Sesi   : Pertemuan 1
-   • Status : 🔹 *Sudah Aktif (Aman)*
+1. *Mekanika Bahan* (`TS 3328`)
+   • Dosen  : BAMBANG TRIGUNO, S.T., M.T.
+   • Sesi   : Pertemuan 2
+   • Status : ✅ *Baru Diaktifkan*
 
-2. *Surveying dan Sistem Informasi Geografis* (`TS 3334`)
-   • Dosen  : ANDIKA SETIAWAN
-   • Sesi   : Pertemuan 1
-   • Status : 🔹 *Sudah Aktif (Aman)*
+2. *Struktur Bangunan* (`TS 3333`)
+   • Dosen  : Dr. Ir. SYAHPUTRA A GANI, S.T., M.T., IPU.
+   • Sesi   : Pertemuan 2
+   • Status : ✅ *Baru Diaktifkan*
 
-3. *Kewirausahaan Teknik Sipil* (`TS 7363`)
-   • Dosen  : Ir. BAMBANG TRI SUKMONO, MT
+3. *Rekayasa Struktur Bangunan Beton* (`TS 5347`)
+   • Dosen  : Drs. GUNAWAN WIBISONO, M.T.
    • Sesi   : Pertemuan 1
-   • Status : 🔹 *Sudah Aktif (Aman)*
+   • Status : ❌ *Gagal:* Mata kuliah tidak ditemukan di portal dosen
+
+4. *Manajemen Konstruksi* (`TS 5351`)
+   • Dosen  : SIGIT HIMAWAN, S.T., M.Sc
+   • Sesi   : Pertemuan 2
+   • Status : ✅ *Baru Diaktifkan*
+
+5. *Prasarana dan Sarana PU Terpadu* (`ST 7107`)
+   • Dosen  : PRAYOGA ADHINUGROHO, S.T., M.I.Kom
+   • Sesi   : Pertemuan 1
+   • Status : ❌ *Gagal:* Mata kuliah tidak ditemukan di portal dosen
+
+6. *Manajemen Pemeliharaan Bangunan* (`TS 7476`)
+   • Dosen  : DIAN SOVANA, S.T., M.T., IPU.
+   • Sesi   : Pertemuan 2
+   • Status : ✅ *Baru Diaktifkan*
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 *RINGKASAN EKSEKUSI PRESENSI:*
-• Total Target   : 3 mata kuliah
-• Sudah Aktif    : 3
+• Total Target   : 6 mata kuliah
+• Baru Diaktifkan: 4
+• Gagal/Perhatian: 2
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 _Automasi Presensi Civitas LMS Operator_
